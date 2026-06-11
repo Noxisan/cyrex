@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "Cyrex",
+    "tagline": "A calmer way to see your Git history."
+  },
+  "actions": {
+    "openRepository": "Open Repository",
+    "fetch": "Fetch",
+    "pull": "Pull",
+    "push": "Push",
+    "stash": "Stash",
+    "search": "Search",
+    "settings": "Settings"
+  },
+  "welcome": {
+    "title": "No repository open",
+    "hint": "Open a local Git repository to see its commit graph, branches, and changes.",
+    "engine": "Engine: {{backend}} · {{version}}"
+  },
+  "sidebar": {
+    "repositories": "Repositories",
+    "localBranches": "Local Branches",
+    "remoteBranches": "Remote Branches",
+    "tags": "Tags",
+    "stashes": "Stashes",
+    "empty": "None"
+  },
+  "graph": {
+    "title": "Commit Graph",
+    "empty": "No commits to display.",
+    "loading": "Loading history…"
+  },
+  "detail": {
+    "title": "Commit",
+    "selectPrompt": "Select a commit to see its details and diff.",
+    "author": "Author",
+    "committer": "Committer",
+    "parents": "Parents",
+    "changedFiles": "Changed Files"
+  },
+  "status": {
+    "clean": "Working tree clean",
+    "staged": "Staged",
+    "unstaged": "Changes",
+    "untracked": "Untracked",
+    "conflicted": "Conflicts",
+    "ahead": "{{count}} ahead",
+    "behind": "{{count}} behind",
+    "detached": "Detached HEAD"
+  },
+  "errors": {
+    "generic": "Something went wrong.",
+    "notARepo": "That folder is not a Git repository."
+  }
+}

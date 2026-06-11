@@ -1,0 +1,55 @@
+{
+  "app": {
+    "name": "Cyrex",
+    "tagline": "Ein ruhigerer Blick auf deine Git-Historie."
+  },
+  "actions": {
+    "openRepository": "Repository öffnen",
+    "fetch": "Fetch",
+    "pull": "Pull",
+    "push": "Push",
+    "stash": "Stash",
+    "search": "Suchen",
+    "settings": "Einstellungen"
+  },
+  "welcome": {
+    "title": "Kein Repository geöffnet",
+    "hint": "Öffne ein lokales Git-Repository, um Commit-Graph, Branches und Änderungen zu sehen.",
+    "engine": "Engine: {{backend}} · {{version}}"
+  },
+  "sidebar": {
+    "repositories": "Repositories",
+    "localBranches": "Lokale Branches",
+    "remoteBranches": "Remote-Branches",
+    "tags": "Tags",
+    "stashes": "Stashes",
+    "empty": "Keine"
+  },
+  "graph": {
+    "title": "Commit-Graph",
+    "empty": "Keine Commits vorhanden.",
+    "loading": "Historie wird geladen…"
+  },
+  "detail": {
+    "title": "Commit",
+    "selectPrompt": "Wähle einen Commit, um Details und Diff zu sehen.",
+    "author": "Autor",
+    "committer": "Committer",
+    "parents": "Eltern",
+    "changedFiles": "Geänderte Dateien"
+  },
+  "status": {
+    "clean": "Arbeitsverzeichnis sauber",
+    "staged": "Bereitgestellt",
+    "unstaged": "Änderungen",
+    "untracked": "Unverfolgt",
+    "conflicted": "Konflikte",
+    "ahead": "{{count}} voraus",
+    "behind": "{{count}} zurück",
+    "detached": "Losgelöster HEAD"
+  },
+  "errors": {
+    "generic": "Etwas ist schiefgelaufen.",
+    "notARepo": "Dieser Ordner ist kein Git-Repository."
+  }
+}

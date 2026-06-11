@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+*.tsbuildinfo
+
+# Native module build artifacts
+build/
+prebuilds/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+.directory
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local env / secrets — never commit credentials
+.env
+.env.local
+*.pem
+*.key

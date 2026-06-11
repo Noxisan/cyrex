@@ -1,0 +1,41 @@
+appId: com.noxisan.cyrex
+productName: Cyrex
+copyright: Copyright © 2026 Noxisan
+
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+
+# Native modules (e.g. nodegit, once integrated) are unpacked so they load at runtime.
+asarUnpack:
+  - '**/*.node'
+
+# --- Windows: NSIS installer + portable ---
+win:
+  target:
+    - nsis
+    - portable
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+
+# --- Linux: AppImage + deb ---
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development
+  maintainer: Noxisan <bambeletuna@protonmail.com>
+
+# --- macOS: dmg (must be built on a real macOS machine / CI runner) ---
+mac:
+  target:
+    - dmg
+  category: public.app-category.developer-tools
+
+publish: null

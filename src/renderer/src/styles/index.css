@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+/*
+ * Cyrex theme tokens. EVERYTHING is a CSS variable so light/dark and accent are
+ * swappable (CLAUDE.md §7). Dark is the default below; the [data-theme="light"]
+ * block overrides the same tokens, and Tailwind utilities (bg-surface, text-fg,
+ * etc.) resolve through them automatically.
+ *
+ * Hard rule: the crimson accent (#F7374F) is for brand/interactive elements
+ * ONLY. Danger / diff-remove / conflict use SEPARATE reds so meaning never
+ * blurs. Diff-add is green. Lane colors are tokens too.
+ */
+@theme {
+  --color-bg: #0e0f12;
+  --color-surface: #16181d;
+  --color-surface-2: #1c1f26;
+  --color-border: #2a2e37;
+  --color-fg: #e7e9ee;
+  --color-fg-muted: #9aa0ab;
+  --color-fg-subtle: #6b7280;
+
+  /* Brand / interactive — crimson. Never used for danger. */
+  --color-accent: #f7374f;
+  --color-accent-hover: #ff4d63;
+  --color-accent-fg: #ffffff;
+
+  /* Danger family — distinct, slightly desaturated reds (NOT the accent). */
+  --color-danger: #c84a45;
+  --color-danger-hover: #d8584f;
+
+  /* Diff + status semantics. */
+  --color-diff-add: #3fb950;
+  --color-diff-add-bg: #12361c;
+  --color-diff-remove: #c84a45;
+  --color-diff-remove-bg: #3a1614;
+  --color-conflict: #d9882f;
+
+  /* Commit-graph lane palette. */
+  --color-lane-0: #f7374f;
+  --color-lane-1: #4aa3ff;
+  --color-lane-2: #3fb950;
+  --color-lane-3: #d9882f;
+  --color-lane-4: #a371f7;
+  --color-lane-5: #2dd4bf;
+
+  --radius-card: 6px;
+}
+
+[data-theme='light'] {
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef0f3;
+  --color-border: #dcdfe5;
+  --color-fg: #1b1d22;
+  --color-fg-muted: #5c626d;
+  --color-fg-subtle: #8a909b;
+
+  --color-accent: #f7374f;
+  --color-accent-hover: #e02742;
+  --color-accent-fg: #ffffff;
+
+  --color-danger: #c0392f;
+  --color-danger-hover: #a93026;
+
+  --color-diff-add: #1a7f37;
+  --color-diff-add-bg: #e6f4ea;
+  --color-diff-remove: #c0392f;
+  --color-diff-remove-bg: #fbe9e7;
+  --color-conflict: #b86e1a;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* RTL support for Arabic/Urdu is driven by dir="rtl" on <html> (i18n). */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
