@@ -33,61 +33,77 @@ export interface GraphLayout {
 }
 
 /**
- * Assign each commit to a lane using a simple first-fit algorithm over a set of
- * "active lanes" keyed by the sha each lane is currently waiting to reach.
+ * Assign each commit a lane, then connect lanes with edges.
+ *
+ * `lanes[i]` reserves the sha that lane i is currently waiting to reach. A
+ * commit takes the lane(s) reserved for it (freeing them — this is what the old
+ * version failed to do, leaking a new lane per branch), seats its first parent
+ * in the same lane to keep history straight, and gives extra parents their own
+ * lanes. Lanes a parent already occupies are reused so merges converge rather
+ * than spawning duplicates.
  */
 export function computeLayout(commits: Commit[]): GraphLayout {
-  const nodes: GraphNode[] = []
-  const edges: GraphEdge[] = []
   const rowOf = new Map<string, number>()
   commits.forEach((c, i) => rowOf.set(c.sha, i))
 
-  // activeLanes[lane] = sha that lane is currently reserved for (or null/free).
-  const activeLanes: (string | null)[] = []
-  let laneCount = 0
+  const laneOf = new Map<string, number>()
+  const lanes: (string | null)[] = []
+  let maxLane = 0
 
-  const claimLane = (sha: string): number => {
-    const existing = activeLanes.indexOf(sha)
+  const firstFree = (): number => {
+    const f = lanes.indexOf(null)
+    if (f !== -1) return f
+    lanes.push(null)
+    return lanes.length - 1
+  }
+  const reserve = (sha: string): number => {
+    const existing = lanes.indexOf(sha)
     if (existing !== -1) return existing
-    const free = activeLanes.indexOf(null)
-    if (free !== -1) {
-      activeLanes[free] = sha
-      return free
-    }
-    activeLanes.push(sha)
-    return activeLanes.length - 1
+    const lane = firstFree()
+    lanes[lane] = sha
+    return lane
   }
 
-  commits.forEach((commit, row) => {
-    const lane = claimLane(commit.sha)
-    laneCount = Math.max(laneCount, activeLanes.length)
-    nodes.push({ sha: commit.sha, row, lane, parents: commit.parents })
+  // Pass 1 — lane assignment (newest -> oldest, i.e. input order).
+  for (const commit of commits) {
+    let my = lanes.indexOf(commit.sha)
+    if (my === -1) my = firstFree() // a tip: nothing downstream reserved it
+    laneOf.set(commit.sha, my)
+    maxLane = Math.max(maxLane, my)
 
-    // This lane is consumed by this commit; free it before re-seating parents.
-    activeLanes[lane] = null
+    // Free every lane that was waiting for this commit (converging merges).
+    for (let i = 0; i < lanes.length; i++) if (lanes[i] === commit.sha) lanes[i] = null
 
     commit.parents.forEach((parent, idx) => {
-      // Only draw/seat parents that are within the loaded window.
       if (!rowOf.has(parent)) return
-      const parentLane =
-        idx === 0
-          ? ((): number => {
-              // First parent inherits this lane when possible (straight line).
-              if (activeLanes[lane] === null) {
-                activeLanes[lane] = parent
-                return lane
-              }
-              return claimLane(parent)
-            })()
-          : claimLane(parent)
-      edges.push({
-        fromRow: row,
-        toRow: rowOf.get(parent)!,
-        fromLane: lane,
-        toLane: parentLane
-      })
+      if (lanes.indexOf(parent) !== -1) return // already reserved by another child
+      const lane = idx === 0 && lanes[my] === null ? ((lanes[my] = parent), my) : reserve(parent)
+      maxLane = Math.max(maxLane, lane)
     })
-  })
+  }
 
-  return { nodes, edges, laneCount: Math.max(laneCount, 1) }
+  // Pass 2 — nodes and edges from the finalized lane assignment.
+  const nodes: GraphNode[] = commits.map((c, row) => ({
+    sha: c.sha,
+    row,
+    lane: laneOf.get(c.sha) ?? 0,
+    parents: c.parents
+  }))
+
+  const edges: GraphEdge[] = []
+  for (const commit of commits) {
+    const fromRow = rowOf.get(commit.sha)!
+    const fromLane = laneOf.get(commit.sha)!
+    for (const parent of commit.parents) {
+      if (!rowOf.has(parent)) continue
+      edges.push({
+        fromRow,
+        toRow: rowOf.get(parent)!,
+        fromLane,
+        toLane: laneOf.get(parent)!
+      })
+    }
+  }
+
+  return { nodes, edges, laneCount: maxLane + 1 }
 }
