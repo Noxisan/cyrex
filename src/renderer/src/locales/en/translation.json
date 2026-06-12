@@ -25,6 +25,20 @@
     "stashes": "Stashes",
     "empty": "None"
   },
+  "common": {
+    "cancel": "Cancel",
+    "create": "Create"
+  },
+  "branch": {
+    "new": "New branch",
+    "namePlaceholder": "branch-name",
+    "checkout": "Check out",
+    "checkoutTracking": "Check out as local branch",
+    "rename": "Rename",
+    "delete": "Delete branch",
+    "forceDelete": "Force delete",
+    "forceDeleteMessage": "Force-delete \"{{name}}\"? Any commits only on this branch will become unreachable."
+  },
   "graph": {
     "title": "Commit Graph",
     "empty": "No commits to display.",

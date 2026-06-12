@@ -73,6 +73,39 @@ export const commitSchema = z.object({
   message: z.string().min(1).max(20_000)
 })
 
+// A ref or branch name: no whitespace/control chars, no leading '-', and none
+// of git's forbidden sequences. git remains the final authority on validity.
+const refName = z
+  .string()
+  .min(1)
+  .max(255)
+  .regex(/^\S+$/, 'invalid ref')
+  .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 0x20), 'invalid ref')
+  .refine((s) => !s.startsWith('-'), 'invalid ref')
+  .refine((s) => !/(\.\.|@\{|[~^:?*[\\])/.test(s), 'invalid ref')
+
+export const checkoutSchema = z.object({ path: z.string().min(1), ref: refName })
+export const checkoutRemoteSchema = z.object({
+  path: z.string().min(1),
+  remoteRef: refName
+})
+export const createBranchSchema = z.object({
+  path: z.string().min(1),
+  name: refName,
+  startPoint: refName.optional(),
+  checkout: z.boolean().optional()
+})
+export const renameBranchSchema = z.object({
+  path: z.string().min(1),
+  oldName: refName,
+  newName: refName
+})
+export const deleteBranchSchema = z.object({
+  path: z.string().min(1),
+  name: refName,
+  force: z.boolean().optional()
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>

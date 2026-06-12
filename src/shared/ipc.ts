@@ -37,6 +37,13 @@ export const IpcChannels = {
   /** DESTRUCTIVE — discard a file's working changes (must be confirmed). */
   RepoDiscard: 'repo:discard',
   RepoCommit: 'repo:commit',
+  /** Branch operations. */
+  RepoCheckout: 'repo:checkout',
+  RepoCheckoutRemote: 'repo:checkoutRemote',
+  RepoCreateBranch: 'repo:createBranch',
+  RepoRenameBranch: 'repo:renameBranch',
+  /** DESTRUCTIVE when force is set (unmerged commits become unreachable). */
+  RepoDeleteBranch: 'repo:deleteBranch',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -111,6 +118,26 @@ export interface IpcApi {
   [IpcChannels.RepoCommit]: {
     request: { path: string; message: string }
     response: EngineResult<{ sha: string }>
+  }
+  [IpcChannels.RepoCheckout]: {
+    request: { path: string; ref: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoCheckoutRemote]: {
+    request: { path: string; remoteRef: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoCreateBranch]: {
+    request: { path: string; name: string; startPoint?: string; checkout?: boolean }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoRenameBranch]: {
+    request: { path: string; oldName: string; newName: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoDeleteBranch]: {
+    request: { path: string; name: string; force?: boolean }
+    response: EngineResult<null>
   }
   [IpcChannels.EngineInfo]: {
     request: void

@@ -14,11 +14,16 @@ import * as engine from '../git/engine'
 import { scrubSecrets } from '../git/cli'
 import {
   applyPartialSchema,
+  checkoutRemoteSchema,
+  checkoutSchema,
   commitDiffSchema,
   commitSchema,
+  createBranchSchema,
+  deleteBranchSchema,
   discardSchema,
   fileOpSchema,
   logSchema,
+  renameBranchSchema,
   repoPathSchema,
   workingDiffSchema
 } from './schemas'
@@ -140,5 +145,48 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     IpcChannels.RepoCommit,
     wrap(commitSchema, (req) => engine.commit(req.path, req.message))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCheckout,
+    wrap(checkoutSchema, async (req) => {
+      await engine.checkout(req.path, req.ref)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCheckoutRemote,
+    wrap(checkoutRemoteSchema, async (req) => {
+      await engine.checkoutRemote(req.path, req.remoteRef)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCreateBranch,
+    wrap(createBranchSchema, async (req) => {
+      await engine.createBranch(req.path, req.name, {
+        startPoint: req.startPoint,
+        checkout: req.checkout
+      })
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoRenameBranch,
+    wrap(renameBranchSchema, async (req) => {
+      await engine.renameBranch(req.path, req.oldName, req.newName)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoDeleteBranch,
+    wrap(deleteBranchSchema, async (req) => {
+      await engine.deleteBranch(req.path, req.name, req.force)
+      return null
+    })
   )
 }
