@@ -39,6 +39,14 @@
     "forceDelete": "Force delete",
     "forceDeleteMessage": "Force-delete \"{{name}}\"? Any commits only on this branch will become unreachable."
   },
+  "stash": {
+    "saveTitle": "Stash changes",
+    "messagePlaceholder": "Optional message",
+    "apply": "Apply",
+    "pop": "Pop (apply and drop)",
+    "drop": "Drop stash",
+    "dropMessage": "Drop this stash? Its changes will be discarded and cannot be recovered."
+  },
   "graph": {
     "title": "Commit Graph",
     "empty": "No commits to display.",

@@ -8,9 +8,13 @@ import {
   Search,
   Settings
 } from 'lucide-react'
+import { useState } from 'react'
 import { useRepoStore } from '../store/repoStore'
+import { useStashSave } from '../hooks/useRepo'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { ThemeToggle } from './ThemeToggle'
+import { PromptDialog } from './PromptDialog'
+import type { PromptState } from './PromptDialog'
 
 function ToolButton({
   label,
@@ -42,10 +46,22 @@ export function TopBar(): React.JSX.Element {
   const { t } = useTranslation()
   const activePath = useRepoStore((s) => s.activePath)
   const addRepo = useRepoStore((s) => s.addRepo)
+  const stashSave = useStashSave(activePath ?? '')
+  const [prompt, setPrompt] = useState<PromptState | null>(null)
 
   async function openRepo(): Promise<void> {
     const res = await window.cyrex.openRepoDialog()
     if (res.ok && res.data) addRepo(res.data)
+  }
+
+  function stash(): void {
+    setPrompt({
+      title: t('stash.saveTitle'),
+      placeholder: t('stash.messagePlaceholder'),
+      confirmLabel: t('actions.stash'),
+      requireValue: false,
+      onSubmit: (message) => stashSave.mutate(message || undefined)
+    })
   }
 
   const hasRepo = !!activePath
@@ -62,7 +78,7 @@ export function TopBar(): React.JSX.Element {
       <ToolButton label={t('actions.fetch')} icon={RefreshCw} disabled={!hasRepo} />
       <ToolButton label={t('actions.pull')} icon={ArrowDownToLine} disabled={!hasRepo} />
       <ToolButton label={t('actions.push')} icon={ArrowUpFromLine} disabled={!hasRepo} />
-      <ToolButton label={t('actions.stash')} icon={Archive} disabled={!hasRepo} />
+      <ToolButton label={t('actions.stash')} icon={Archive} onClick={stash} disabled={!hasRepo} />
 
       <div className="flex-1" />
 
@@ -80,6 +96,8 @@ export function TopBar(): React.JSX.Element {
       <LanguageSwitcher />
       <ThemeToggle />
       <ToolButton label={t('actions.settings')} icon={Settings} />
+
+      <PromptDialog state={prompt} onClose={() => setPrompt(null)} />
     </header>
   )
 }

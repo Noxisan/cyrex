@@ -39,6 +39,14 @@
     "forceDelete": "Löschen erzwingen",
     "forceDeleteMessage": "\"{{name}}\" zwangsweise löschen? Commits, die nur auf diesem Branch liegen, werden unerreichbar."
   },
+  "stash": {
+    "saveTitle": "Änderungen stashen",
+    "messagePlaceholder": "Optionale Nachricht",
+    "apply": "Anwenden",
+    "pop": "Pop (anwenden und entfernen)",
+    "drop": "Stash verwerfen",
+    "dropMessage": "Diesen Stash verwerfen? Die Änderungen gehen unwiederbringlich verloren."
+  },
   "graph": {
     "title": "Commit-Graph",
     "empty": "Keine Commits vorhanden.",

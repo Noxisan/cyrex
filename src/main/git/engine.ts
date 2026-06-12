@@ -19,6 +19,7 @@ import type {
   LogOptions,
   RepoRef,
   RepoStatus,
+  Stash,
   Tag
 } from '@shared/types'
 import { gitVersion, isGitRepo, runGit } from './cli'
@@ -468,6 +469,44 @@ export async function deleteBranch(
   force = false
 ): Promise<void> {
   await runGit(['branch', force ? '-D' : '-d', name], { cwd: repoPath })
+}
+
+// --- stash -----------------------------------------------------------------
+
+export async function stashList(repoPath: string): Promise<Stash[]> {
+  const fmt = ['%gd', '%H', '%cI', '%gs'].join(US)
+  const { stdout } = await runGit(['stash', 'list', '-z', `--format=${fmt}`], { cwd: repoPath })
+
+  const list: Stash[] = []
+  for (const rec of stdout.split('\0')) {
+    if (!rec.trim()) continue
+    const [gd, sha, date, message] = rec.split(US)
+    const m = gd.match(/stash@\{(\d+)\}/)
+    list.push({ index: m ? Number(m[1]) : list.length, sha, date, message: message ?? '' })
+  }
+  return list
+}
+
+/** Stash the working tree (including untracked files). */
+export async function stashSave(repoPath: string, message?: string): Promise<void> {
+  const args = ['stash', 'push', '--include-untracked']
+  if (message && message.trim()) args.push('-m', message.trim())
+  await runGit(args, { cwd: repoPath })
+}
+
+/** Apply a stash, keeping it in the stack. Conflicts are surfaced, not hidden. */
+export async function stashApply(repoPath: string, index: number): Promise<void> {
+  await runGit(['stash', 'apply', `stash@{${index}}`], { cwd: repoPath })
+}
+
+/** Apply a stash and drop it on success. */
+export async function stashPop(repoPath: string, index: number): Promise<void> {
+  await runGit(['stash', 'pop', `stash@{${index}}`], { cwd: repoPath })
+}
+
+/** DESTRUCTIVE: discard a stash entry without applying it. */
+export async function stashDrop(repoPath: string, index: number): Promise<void> {
+  await runGit(['stash', 'drop', `stash@{${index}}`], { cwd: repoPath })
 }
 
 export async function tags(repoPath: string): Promise<Tag[]> {

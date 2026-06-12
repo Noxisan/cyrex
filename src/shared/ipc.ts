@@ -14,6 +14,7 @@ import type {
   LogOptions,
   RepoRef,
   RepoStatus,
+  Stash,
   Tag
 } from './types'
 
@@ -44,6 +45,13 @@ export const IpcChannels = {
   RepoRenameBranch: 'repo:renameBranch',
   /** DESTRUCTIVE when force is set (unmerged commits become unreachable). */
   RepoDeleteBranch: 'repo:deleteBranch',
+  /** Stash operations. */
+  RepoStashList: 'repo:stashList',
+  RepoStashSave: 'repo:stashSave',
+  RepoStashApply: 'repo:stashApply',
+  RepoStashPop: 'repo:stashPop',
+  /** DESTRUCTIVE — discards a stash without applying it. */
+  RepoStashDrop: 'repo:stashDrop',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -137,6 +145,26 @@ export interface IpcApi {
   }
   [IpcChannels.RepoDeleteBranch]: {
     request: { path: string; name: string; force?: boolean }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoStashList]: {
+    request: { path: string }
+    response: EngineResult<Stash[]>
+  }
+  [IpcChannels.RepoStashSave]: {
+    request: { path: string; message?: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoStashApply]: {
+    request: { path: string; index: number }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoStashPop]: {
+    request: { path: string; index: number }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoStashDrop]: {
+    request: { path: string; index: number }
     response: EngineResult<null>
   }
   [IpcChannels.EngineInfo]: {

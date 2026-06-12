@@ -48,7 +48,14 @@ export const cyrexApi = {
   renameBranch: (path: string, oldName: string, newName: string) =>
     invoke(IpcChannels.RepoRenameBranch, { path, oldName, newName }),
   deleteBranch: (path: string, name: string, force?: boolean) =>
-    invoke(IpcChannels.RepoDeleteBranch, { path, name, force })
+    invoke(IpcChannels.RepoDeleteBranch, { path, name, force }),
+  stashList: (path: string) => invoke(IpcChannels.RepoStashList, { path }),
+  stashSave: (path: string, message?: string) =>
+    invoke(IpcChannels.RepoStashSave, { path, message }),
+  stashApply: (path: string, index: number) =>
+    invoke(IpcChannels.RepoStashApply, { path, index }),
+  stashPop: (path: string, index: number) => invoke(IpcChannels.RepoStashPop, { path, index }),
+  stashDrop: (path: string, index: number) => invoke(IpcChannels.RepoStashDrop, { path, index })
 }
 
 export type CyrexApi = typeof cyrexApi

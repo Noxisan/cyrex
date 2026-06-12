@@ -106,6 +106,15 @@ export const deleteBranchSchema = z.object({
   force: z.boolean().optional()
 })
 
+export const stashSaveSchema = z.object({
+  path: z.string().min(1),
+  message: z.string().max(20_000).optional()
+})
+export const stashIndexSchema = z.object({
+  path: z.string().min(1),
+  index: z.number().int().nonnegative().max(10_000)
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>

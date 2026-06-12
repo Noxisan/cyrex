@@ -19,6 +19,10 @@ import {
   useCreateBranch,
   useDeleteBranch,
   useRenameBranch,
+  useStashApply,
+  useStashDrop,
+  useStashes,
+  useStashPop,
   useTags
 } from '../hooks/useRepo'
 import { ContextMenu } from './ContextMenu'
@@ -143,6 +147,7 @@ export function Sidebar(): React.JSX.Element {
   const { repos, activePath, setActive } = useRepoStore()
   const branches = useBranches(activePath)
   const tags = useTags(activePath)
+  const stashes = useStashes(activePath)
 
   const path = activePath ?? ''
   const checkout = useCheckout(path)
@@ -150,6 +155,9 @@ export function Sidebar(): React.JSX.Element {
   const createBranch = useCreateBranch(path)
   const renameBranch = useRenameBranch(path)
   const deleteBranch = useDeleteBranch(path)
+  const stashApply = useStashApply(path)
+  const stashPop = useStashPop(path)
+  const stashDrop = useStashDrop(path)
 
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
@@ -196,6 +204,30 @@ export function Sidebar(): React.JSX.Element {
       x: e.clientX,
       y: e.clientY,
       items: [{ label: t('branch.checkoutTracking'), onClick: () => checkoutRemote.mutate(name) }]
+    })
+  }
+
+  const stashMenu = (e: React.MouseEvent, index: number): void => {
+    e.preventDefault()
+    setMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: t('stash.apply'), onClick: () => stashApply.mutate(index) },
+        { label: t('stash.pop'), onClick: () => stashPop.mutate(index) },
+        {
+          label: t('stash.drop'),
+          danger: true,
+          onClick: () =>
+            setConfirm({
+              title: t('stash.drop'),
+              message: t('stash.dropMessage'),
+              confirmLabel: t('stash.drop'),
+              danger: true,
+              onConfirm: () => stashDrop.mutate(index)
+            })
+        }
+      ]
     })
   }
 
@@ -313,8 +345,28 @@ export function Sidebar(): React.JSX.Element {
         )}
       </Section>
 
-      <Section title={t('sidebar.stashes')} icon={Archive} count={0} defaultOpen={false}>
-        <p className="px-3 py-1 ps-7 text-xs text-fg-subtle">{t('sidebar.empty')}</p>
+      <Section
+        title={t('sidebar.stashes')}
+        icon={Archive}
+        count={stashes.data?.length}
+        defaultOpen={false}
+      >
+        {!stashes.data || stashes.data.length === 0 ? (
+          <p className="px-3 py-1 ps-7 text-xs text-fg-subtle">{t('sidebar.empty')}</p>
+        ) : (
+          stashes.data.map((s) => (
+            <div
+              key={s.index}
+              onDoubleClick={() => stashApply.mutate(s.index)}
+              onContextMenu={(e) => stashMenu(e, s.index)}
+              title={`${s.message} — double-click to apply`}
+              className="group flex cursor-pointer items-center gap-2 px-3 py-1 ps-7 text-xs text-fg hover:bg-surface-2"
+            >
+              <Archive size={11} strokeWidth={1.75} className="shrink-0 text-fg-subtle" />
+              <span className="truncate">{s.message}</span>
+            </div>
+          ))
+        )}
       </Section>
 
       <ContextMenu state={menu} onClose={() => setMenu(null)} />

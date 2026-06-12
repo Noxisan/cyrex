@@ -25,6 +25,8 @@ import {
   logSchema,
   renameBranchSchema,
   repoPathSchema,
+  stashIndexSchema,
+  stashSaveSchema,
   workingDiffSchema
 } from './schemas'
 
@@ -186,6 +188,43 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoDeleteBranch,
     wrap(deleteBranchSchema, async (req) => {
       await engine.deleteBranch(req.path, req.name, req.force)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoStashList,
+    wrap(repoPathSchema, (req) => engine.stashList(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoStashSave,
+    wrap(stashSaveSchema, async (req) => {
+      await engine.stashSave(req.path, req.message)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoStashApply,
+    wrap(stashIndexSchema, async (req) => {
+      await engine.stashApply(req.path, req.index)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoStashPop,
+    wrap(stashIndexSchema, async (req) => {
+      await engine.stashPop(req.path, req.index)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoStashDrop,
+    wrap(stashIndexSchema, async (req) => {
+      await engine.stashDrop(req.path, req.index)
       return null
     })
   )

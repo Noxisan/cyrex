@@ -89,6 +89,16 @@ export interface Tag {
   annotated: boolean
 }
 
+export interface Stash {
+  /** Position in the stash stack (0 = most recent), i.e. stash@{index}. */
+  index: number
+  sha: string
+  /** ISO-8601 timestamp. */
+  date: string
+  /** The stash subject, e.g. "WIP on main: 1a2b3c message". */
+  message: string
+}
+
 export interface LogOptions {
   /** Max commits to return (pagination). */
   limit?: number
