@@ -64,7 +64,10 @@ export function runGit(args: string[], opts: GitRunOptions = {}): Promise<GitRun
         ...process.env,
         GIT_TERMINAL_PROMPT: '0',
         LC_ALL: 'C',
-        GIT_OPTIONAL_LOCKS: '0'
+        GIT_OPTIONAL_LOCKS: '0',
+        // A GUI never wants an interactive editor; accept default messages.
+        GIT_EDITOR: 'true',
+        GIT_SEQUENCE_EDITOR: 'true'
       },
       windowsHide: true
     })

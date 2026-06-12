@@ -189,6 +189,26 @@ export function usePush(path: string) {
   return useRepoMutation((force?: boolean) => window.cyrex.push(path, force), t('remote.pushed'))
 }
 
+export function useMerge(path: string) {
+  return useRepoMutation((ref: string) => window.cyrex.merge(path, ref))
+}
+
+export function useCherryPick(path: string) {
+  return useRepoMutation((sha: string) => window.cyrex.cherryPick(path, sha))
+}
+
+export function useRevert(path: string) {
+  return useRepoMutation((sha: string) => window.cyrex.revert(path, sha))
+}
+
+export function useContinueOperation(path: string) {
+  return useRepoMutation(() => window.cyrex.continueOperation(path))
+}
+
+export function useAbortOperation(path: string) {
+  return useRepoMutation(() => window.cyrex.abortOperation(path))
+}
+
 export function useCommit(path: string) {
   return useRepoMutation((message: string) => window.cyrex.commit(path, message))
 }

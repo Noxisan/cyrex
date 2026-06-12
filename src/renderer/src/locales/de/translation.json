@@ -34,6 +34,7 @@
     "namePlaceholder": "branch-name",
     "checkout": "Auschecken",
     "checkoutTracking": "Als lokalen Branch auschecken",
+    "mergeInto": "In {{current}} mergen",
     "rename": "Umbenennen",
     "delete": "Branch löschen",
     "forceDelete": "Löschen erzwingen",
@@ -53,6 +54,22 @@
     "pushed": "Zum Remote gepusht",
     "forcePush": "Push erzwingen",
     "forcePushMessage": "Mit Lease erzwingen? Dies kann Commits auf dem Remote überschreiben, falls andere seit deinem letzten Fetch gepusht haben."
+  },
+  "commit": {
+    "cherryPick": "Auf aktuellen Branch cherry-picken",
+    "revert": "Diesen Commit rückgängig machen"
+  },
+  "operation": {
+    "merge": "Merge",
+    "cherry-pick": "Cherry-pick",
+    "revert": "Revert",
+    "rebase": "Rebase",
+    "inProgress": "{{op}} läuft.",
+    "conflicts_one": "{{count}} Konflikt zu lösen.",
+    "conflicts_other": "{{count}} Konflikte zu lösen.",
+    "resolveFirst": "Zuerst alle Konflikte lösen und bereitstellen.",
+    "continue": "Fortsetzen",
+    "abort": "Abbrechen"
   },
   "graph": {
     "title": "Commit-Graph",

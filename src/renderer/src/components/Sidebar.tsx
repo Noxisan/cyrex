@@ -18,6 +18,7 @@ import {
   useCheckoutRemote,
   useCreateBranch,
   useDeleteBranch,
+  useMerge,
   useRenameBranch,
   useStashApply,
   useStashDrop,
@@ -155,6 +156,7 @@ export function Sidebar(): React.JSX.Element {
   const createBranch = useCreateBranch(path)
   const renameBranch = useRenameBranch(path)
   const deleteBranch = useDeleteBranch(path)
+  const merge = useMerge(path)
   const stashApply = useStashApply(path)
   const stashPop = useStashPop(path)
   const stashDrop = useStashDrop(path)
@@ -166,6 +168,7 @@ export function Sidebar(): React.JSX.Element {
 
   const locals = branches.data?.filter((b) => b.kind === 'local') ?? []
   const remotes = branches.data?.filter((b) => b.kind === 'remote') ?? []
+  const currentBranch = locals.find((b) => b.current)?.name ?? null
 
   const localMenu = (e: React.MouseEvent, name: string, current: boolean): void => {
     e.preventDefault()
@@ -174,6 +177,11 @@ export function Sidebar(): React.JSX.Element {
       y: e.clientY,
       items: [
         { label: t('branch.checkout'), onClick: () => checkout.mutate(name), disabled: current },
+        {
+          label: t('branch.mergeInto', { current: currentBranch ?? 'HEAD' }),
+          disabled: current || !currentBranch,
+          onClick: () => merge.mutate(name)
+        },
         { label: t('branch.rename'), onClick: () => setRenaming(name) },
         {
           label: t('branch.delete'),

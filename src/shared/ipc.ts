@@ -57,6 +57,12 @@ export const IpcChannels = {
   RepoPull: 'repo:pull',
   /** DESTRUCTIVE when force is set (force-with-lease can overwrite remote work). */
   RepoPush: 'repo:push',
+  /** History operations (may stop on conflicts). */
+  RepoMerge: 'repo:merge',
+  RepoCherryPick: 'repo:cherryPick',
+  RepoRevert: 'repo:revert',
+  RepoContinueOp: 'repo:continueOperation',
+  RepoAbortOp: 'repo:abortOperation',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -182,6 +188,26 @@ export interface IpcApi {
   }
   [IpcChannels.RepoPush]: {
     request: { path: string; force?: boolean }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoMerge]: {
+    request: { path: string; ref: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoCherryPick]: {
+    request: { path: string; sha: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoRevert]: {
+    request: { path: string; sha: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoContinueOp]: {
+    request: { path: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoAbortOp]: {
+    request: { path: string }
     response: EngineResult<null>
   }
   [IpcChannels.EngineInfo]: {
