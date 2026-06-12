@@ -173,7 +173,9 @@ export async function log(repoPath: string, options: LogOptions = {}): Promise<C
       '%H', '%h', '%P', '%an', '%ae', '%aI', '%cn', '%ce', '%cI', '%D', '%s', '%b'
     ].join(US) + RS
 
-  const args = ['log', `--format=${format}`, `--max-count=${limit}`]
+  // --topo-order keeps branch lines contiguous so the lane graph reads cleanly
+  // (default date order interleaves parallel branches).
+  const args = ['log', '--topo-order', `--format=${format}`, `--max-count=${limit}`]
   if (skip > 0) args.push(`--skip=${skip}`)
   args.push(ref ?? '--all')
 

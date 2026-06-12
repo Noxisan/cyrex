@@ -123,7 +123,9 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
       <div className="relative min-h-0 flex-1 overflow-auto">
         <div className="flex" style={{ minHeight: commits.length * ROW_H }}>
           <GraphColumn commits={commits} width={graphWidth} />
-          <div className="min-w-0 flex-1">
+          {/* min-width keeps the commit rows from collapsing when the graph
+              column is wide (deep/branchy history); the panel scrolls instead. */}
+          <div className="min-w-[340px] flex-1">
             {commits.map((c, row) => (
               <button
                 key={c.sha}
