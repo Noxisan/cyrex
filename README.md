@@ -58,6 +58,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Fetch / pull / push, upstream tracking | Done |
 | Conflict detection (resolution UI) | Done (detection) |
 | Blame and per-file history | Done |
+| Commit search (message / author / sha) | Done |
 | Undo / reflog surface | Planned |
 | Embedded terminal | Planned |
 
