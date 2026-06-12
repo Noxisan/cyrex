@@ -52,7 +52,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Amend / sign commits | Planned |
 | Merge / rebase / cherry-pick / revert | Planned |
 | Interactive rebase UI | Planned |
-| Stash create / apply / pop / drop | Planned |
+| Stash save / apply / pop / drop | Done |
 | Fetch / pull / push, upstream tracking | Planned |
 | Conflict resolution UI | Planned |
 | Blame and per-file history | Planned |
