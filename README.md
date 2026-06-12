@@ -45,8 +45,10 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Branch and tag listing | Done |
 | Per-commit diff view (inline + side-by-side) | Done |
 | Syntax highlighting in diffs | Planned |
+| Stage / unstage / discard by file | Done |
+| Commit staged changes | Done |
 | Stage / unstage by hunk and line | Planned |
-| Commit, amend, sign | Planned |
+| Amend / sign commits | Planned |
 | Merge / rebase / cherry-pick / revert | Planned |
 | Interactive rebase UI | Planned |
 | Stash create / apply / pop / drop | Planned |
