@@ -120,6 +120,11 @@ export const pushSchema = z.object({
   force: z.boolean().optional()
 })
 
+export const searchSchema = z.object({
+  path: z.string().min(1),
+  query: z.string().min(1).max(500)
+})
+
 export const mergeSchema = z.object({ path: z.string().min(1), ref: refName })
 export const cherryPickSchema = z.object({ path: z.string().min(1), sha: refName })
 export const revertSchema = z.object({ path: z.string().min(1), sha: refName })

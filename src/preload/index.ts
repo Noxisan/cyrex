@@ -66,7 +66,8 @@ export const cyrexApi = {
   abortOperation: (path: string) => invoke(IpcChannels.RepoAbortOp, { path }),
   fileHistory: (path: string, file: string) =>
     invoke(IpcChannels.RepoFileHistory, { path, file }),
-  blame: (path: string, file: string) => invoke(IpcChannels.RepoBlame, { path, file })
+  blame: (path: string, file: string) => invoke(IpcChannels.RepoBlame, { path, file }),
+  search: (path: string, query: string) => invoke(IpcChannels.RepoSearch, { path, query })
 }
 
 export type CyrexApi = typeof cyrexApi

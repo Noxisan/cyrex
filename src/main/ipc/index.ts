@@ -29,6 +29,7 @@ import {
   renameBranchSchema,
   repoPathSchema,
   revertSchema,
+  searchSchema,
   stashIndexSchema,
   stashSaveSchema,
   workingDiffSchema
@@ -305,5 +306,10 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     IpcChannels.RepoBlame,
     wrap(fileOpSchema, (req) => engine.blame(req.path, req.file))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoSearch,
+    wrap(searchSchema, (req) => engine.searchCommits(req.path, req.query))
   )
 }

@@ -67,6 +67,8 @@ export const IpcChannels = {
   /** Per-file inspection. */
   RepoFileHistory: 'repo:fileHistory',
   RepoBlame: 'repo:blame',
+  /** Search commits by message, author, or sha. */
+  RepoSearch: 'repo:search',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -221,6 +223,10 @@ export interface IpcApi {
   [IpcChannels.RepoBlame]: {
     request: { path: string; file: string }
     response: EngineResult<BlameLine[]>
+  }
+  [IpcChannels.RepoSearch]: {
+    request: { path: string; query: string }
+    response: EngineResult<Commit[]>
   }
   [IpcChannels.EngineInfo]: {
     request: void

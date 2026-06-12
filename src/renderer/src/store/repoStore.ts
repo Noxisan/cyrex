@@ -26,6 +26,8 @@ interface RepoState {
   /** File path open in the history/blame inspector overlay, if any. */
   inspectorFile: string | null
   inspectorTab: 'history' | 'blame'
+  /** Active commit-search query; when non-empty the graph shows results. */
+  searchQuery: string
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
@@ -35,6 +37,7 @@ interface RepoState {
   selectFile: (file: SelectedFile | null) => void
   openInspector: (file: string, tab?: 'history' | 'blame') => void
   closeInspector: () => void
+  setSearchQuery: (query: string) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -69,6 +72,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   selectedFile: null,
   inspectorFile: null,
   inspectorTab: 'history',
+  searchQuery: '',
   theme: initialTheme(),
 
   addRepo: (repo) =>
@@ -79,12 +83,19 @@ export const useRepoStore = create<RepoState>((set, get) => ({
     }),
 
   setActive: (path) =>
-    set({ activePath: path, selectedSha: null, selectedFile: null, inspectorFile: null }),
+    set({
+      activePath: path,
+      selectedSha: null,
+      selectedFile: null,
+      inspectorFile: null,
+      searchQuery: ''
+    }),
   selectCommit: (sha) => set({ selectedSha: sha }),
   setViewMode: (mode) => set({ viewMode: mode }),
   selectFile: (file) => set({ selectedFile: file }),
   openInspector: (file, tab = 'history') => set({ inspectorFile: file, inspectorTab: tab }),
   closeInspector: () => set({ inspectorFile: null }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
 
   setTheme: (theme) => {
     localStorage.setItem(THEME_KEY, theme)

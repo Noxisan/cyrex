@@ -69,6 +69,14 @@ export function useBlame(path: string | null, file: string | null) {
   })
 }
 
+export function useSearch(path: string | null, query: string) {
+  return useQuery({
+    queryKey: ['search', path, query],
+    enabled: !!path && query.trim().length > 0,
+    queryFn: async () => unwrap(await window.cyrex.search(path!, query.trim()))
+  })
+}
+
 export function useCommitDiff(path: string | null, sha: string | null) {
   return useQuery({
     queryKey: ['commitDiff', path, sha],

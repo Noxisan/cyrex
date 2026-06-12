@@ -224,6 +224,50 @@ export async function log(repoPath: string, options: LogOptions = {}): Promise<C
   return parseCommits(stdout)
 }
 
+/**
+ * Search commits across all refs by message, author, or sha prefix. Runs a
+ * literal (-F), case-insensitive log for each facet and unions the results,
+ * newest first — search results are a flat list, not a lane graph.
+ */
+export async function searchCommits(
+  repoPath: string,
+  query: string,
+  limit = 200
+): Promise<Commit[]> {
+  const q = query.trim()
+  if (!q) return []
+
+  const base = [
+    'log',
+    '--all',
+    '-i',
+    '--fixed-strings',
+    `--format=${LOG_FORMAT}`,
+    `--max-count=${limit}`
+  ]
+  const byMessage = parseCommits((await runGit([...base, `--grep=${q}`], { cwd: repoPath })).stdout)
+  const byAuthor = parseCommits(
+    (await runGit([...base, `--author=${q}`], { cwd: repoPath })).stdout
+  )
+
+  const byId = new Map<string, Commit>()
+  for (const c of byMessage) byId.set(c.sha, c)
+  for (const c of byAuthor) byId.set(c.sha, c)
+
+  // Direct sha / ref lookup when the query looks like an object id.
+  if (/^[0-9a-f]{4,40}$/i.test(q)) {
+    const res = await runGit(['log', '-1', `--format=${LOG_FORMAT}`, q], {
+      cwd: repoPath,
+      throwOnError: false
+    })
+    if (res.code === 0) for (const c of parseCommits(res.stdout)) byId.set(c.sha, c)
+  }
+
+  return [...byId.values()]
+    .sort((a, b) => b.committer.date.localeCompare(a.committer.date))
+    .slice(0, limit)
+}
+
 /** History of a single file, following renames. */
 export async function fileHistory(
   repoPath: string,

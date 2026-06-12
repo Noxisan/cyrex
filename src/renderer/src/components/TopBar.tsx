@@ -5,7 +5,6 @@ import {
   Archive,
   FolderOpen,
   RefreshCw,
-  Search,
   Settings
 } from 'lucide-react'
 import { useState } from 'react'
@@ -15,6 +14,7 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 import { ThemeToggle } from './ThemeToggle'
 import { PromptDialog } from './PromptDialog'
 import type { PromptState } from './PromptDialog'
+import { SearchInput } from './SearchInput'
 import { ContextMenu } from './ContextMenu'
 import type { MenuState } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -138,7 +138,7 @@ export function TopBar(): React.JSX.Element {
 
       <div className="flex-1" />
 
-      <ToolButton label={t('actions.search')} icon={Search} disabled={!hasRepo} />
+      {hasRepo && <SearchInput />}
       <button
         type="button"
         onClick={openRepo}

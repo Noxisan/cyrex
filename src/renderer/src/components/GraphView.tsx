@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { computeLayout } from '@shared/graph'
 import type { Commit } from '@shared/types'
-import { useCherryPick, useLog, useRevert } from '../hooks/useRepo'
+import { useCherryPick, useLog, useRevert, useSearch } from '../hooks/useRepo'
 import { useRepoStore } from '../store/repoStore'
 import { ContextMenu } from './ContextMenu'
 import type { MenuState } from './ContextMenu'
@@ -38,6 +38,43 @@ function RefBadge({ name }: { name: string }): React.JSX.Element {
     >
       {label}
     </span>
+  )
+}
+
+function CommitRow({
+  commit,
+  selected,
+  topBorder,
+  onSelect,
+  onContextMenu
+}: {
+  commit: Commit
+  selected: boolean
+  topBorder: boolean
+  onSelect: () => void
+  onContextMenu: (e: React.MouseEvent) => void
+}): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      onContextMenu={onContextMenu}
+      style={{ height: ROW_H }}
+      className={`flex w-full items-center gap-2 px-3 text-start text-xs hover:bg-surface-2 ${
+        selected ? 'bg-surface-2' : ''
+      } ${topBorder ? 'border-t border-border/30' : ''}`}
+    >
+      {commit.refs.length > 0 && (
+        <span className="flex shrink-0 gap-1">
+          {commit.refs.map((r) => (
+            <RefBadge key={r} name={r} />
+          ))}
+        </span>
+      )}
+      <span className="truncate text-fg">{commit.summary}</span>
+      <span className="ms-auto shrink-0 truncate text-fg-subtle">{commit.author.name}</span>
+      <span className="shrink-0 font-mono text-[11px] text-fg-subtle">{commit.shortSha}</span>
+    </button>
   )
 }
 
@@ -102,6 +139,9 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
   const selectCommit = useRepoStore((s) => s.selectCommit)
   const cherryPick = useCherryPick(repoPath)
   const revert = useRevert(repoPath)
+  const searchQuery = useRepoStore((s) => s.searchQuery)
+  const searchActive = searchQuery.trim().length > 0
+  const search = useSearch(repoPath, searchQuery)
   const [menu, setMenu] = useState<MenuState | null>(null)
 
   const commitMenu = (e: React.MouseEvent, sha: string): void => {
@@ -122,6 +162,38 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
     return LEFT_PAD * 2 + layout.laneCount * LANE_W
   }, [commits])
 
+  // --- search results mode ---
+  if (searchActive) {
+    const results = search.data
+    return (
+      <div className="flex h-full flex-col">
+        <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-4 text-xs font-medium uppercase tracking-wide text-fg-muted">
+          {t('search.results')}
+          {results && <span className="text-fg-subtle">{results.length}</span>}
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
+          {search.isLoading && <Centered text={t('graph.loading')} />}
+          {search.error && <Centered text={(search.error as Error).message} tone="danger" />}
+          {results && results.length === 0 && !search.isLoading && (
+            <Centered text={t('search.noResults', { query: searchQuery })} />
+          )}
+          {results?.map((c, i) => (
+            <CommitRow
+              key={c.sha}
+              commit={c}
+              selected={selectedSha === c.sha}
+              topBorder={i > 0}
+              onSelect={() => selectCommit(c.sha)}
+              onContextMenu={(e) => commitMenu(e, c.sha)}
+            />
+          ))}
+        </div>
+        <ContextMenu state={menu} onClose={() => setMenu(null)} />
+      </div>
+    )
+  }
+
+  // --- graph mode ---
   if (isLoading) {
     return <Centered text={t('graph.loading')} />
   }
@@ -144,27 +216,14 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
               column is wide (deep/branchy history); the panel scrolls instead. */}
           <div className="min-w-[340px] flex-1">
             {commits.map((c, row) => (
-              <button
+              <CommitRow
                 key={c.sha}
-                type="button"
-                onClick={() => selectCommit(c.sha)}
+                commit={c}
+                selected={selectedSha === c.sha}
+                topBorder={row > 0}
+                onSelect={() => selectCommit(c.sha)}
                 onContextMenu={(e) => commitMenu(e, c.sha)}
-                style={{ height: ROW_H }}
-                className={`flex w-full items-center gap-2 px-3 text-start text-xs hover:bg-surface-2 ${
-                  selectedSha === c.sha ? 'bg-surface-2' : ''
-                } ${row === 0 ? '' : 'border-t border-border/30'}`}
-              >
-                {c.refs.length > 0 && (
-                  <span className="flex shrink-0 gap-1">
-                    {c.refs.map((r) => (
-                      <RefBadge key={r} name={r} />
-                    ))}
-                  </span>
-                )}
-                <span className="truncate text-fg">{c.summary}</span>
-                <span className="ms-auto shrink-0 truncate text-fg-subtle">{c.author.name}</span>
-                <span className="shrink-0 font-mono text-[11px] text-fg-subtle">{c.shortSha}</span>
-              </button>
+              />
             ))}
           </div>
         </div>

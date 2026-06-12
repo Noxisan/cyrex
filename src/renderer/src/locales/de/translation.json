@@ -83,6 +83,12 @@
     "empty": "Keine Commits vorhanden.",
     "loading": "Historie wird geladen…"
   },
+  "search": {
+    "placeholder": "Commits suchen…",
+    "clear": "Suche löschen",
+    "results": "Suchergebnisse",
+    "noResults": "Keine Commits passen zu \"{{query}}\"."
+  },
   "detail": {
     "title": "Commit",
     "selectPrompt": "Wähle einen Commit, um Details und Diff zu sehen.",
