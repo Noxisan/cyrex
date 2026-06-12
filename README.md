@@ -50,11 +50,13 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Stage / unstage by hunk and line | Done |
 | Commit staged changes | Done |
 | Amend / sign commits | Planned |
-| Merge / rebase / cherry-pick / revert | Planned |
+| Merge / cherry-pick / revert | Done |
+| In-progress operation banner (continue / abort) | Done |
+| Rebase | Planned |
 | Interactive rebase UI | Planned |
 | Stash save / apply / pop / drop | Done |
 | Fetch / pull / push, upstream tracking | Done |
-| Conflict resolution UI | Planned |
+| Conflict detection (resolution UI) | Done (detection) |
 | Blame and per-file history | Planned |
 | Undo / reflog surface | Planned |
 | Embedded terminal | Planned |
