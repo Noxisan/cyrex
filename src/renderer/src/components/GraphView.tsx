@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { computeLayout } from '@shared/graph'
 import type { Commit } from '@shared/types'
-import { useLog } from '../hooks/useRepo'
+import { useCherryPick, useLog, useRevert } from '../hooks/useRepo'
 import { useRepoStore } from '../store/repoStore'
+import { ContextMenu } from './ContextMenu'
+import type { MenuState } from './ContextMenu'
 
 const ROW_H = 30
 const LANE_W = 15
@@ -98,6 +100,21 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
   const { data: commits, isLoading, error } = useLog(repoPath, { limit: 300 })
   const selectedSha = useRepoStore((s) => s.selectedSha)
   const selectCommit = useRepoStore((s) => s.selectCommit)
+  const cherryPick = useCherryPick(repoPath)
+  const revert = useRevert(repoPath)
+  const [menu, setMenu] = useState<MenuState | null>(null)
+
+  const commitMenu = (e: React.MouseEvent, sha: string): void => {
+    e.preventDefault()
+    setMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: t('commit.cherryPick'), onClick: () => cherryPick.mutate(sha) },
+        { label: t('commit.revert'), onClick: () => revert.mutate(sha) }
+      ]
+    })
+  }
 
   const graphWidth = useMemo(() => {
     if (!commits) return LEFT_PAD * 2
@@ -131,6 +148,7 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
                 key={c.sha}
                 type="button"
                 onClick={() => selectCommit(c.sha)}
+                onContextMenu={(e) => commitMenu(e, c.sha)}
                 style={{ height: ROW_H }}
                 className={`flex w-full items-center gap-2 px-3 text-start text-xs hover:bg-surface-2 ${
                   selectedSha === c.sha ? 'bg-surface-2' : ''
@@ -151,6 +169,7 @@ export function GraphView({ repoPath }: { repoPath: string }): React.JSX.Element
           </div>
         </div>
       </div>
+      <ContextMenu state={menu} onClose={() => setMenu(null)} />
     </div>
   )
 }

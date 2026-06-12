@@ -34,6 +34,7 @@
     "namePlaceholder": "branch-name",
     "checkout": "Check out",
     "checkoutTracking": "Check out as local branch",
+    "mergeInto": "Merge into {{current}}",
     "rename": "Rename",
     "delete": "Delete branch",
     "forceDelete": "Force delete",
@@ -53,6 +54,22 @@
     "pushed": "Pushed to remote",
     "forcePush": "Force push",
     "forcePushMessage": "Force-push with lease? This can overwrite commits on the remote if others have pushed since your last fetch."
+  },
+  "commit": {
+    "cherryPick": "Cherry-pick onto current branch",
+    "revert": "Revert this commit"
+  },
+  "operation": {
+    "merge": "Merge",
+    "cherry-pick": "Cherry-pick",
+    "revert": "Revert",
+    "rebase": "Rebase",
+    "inProgress": "{{op}} in progress.",
+    "conflicts_one": "{{count}} conflict to resolve.",
+    "conflicts_other": "{{count}} conflicts to resolve.",
+    "resolveFirst": "Resolve and stage all conflicts first.",
+    "continue": "Continue",
+    "abort": "Abort"
   },
   "graph": {
     "title": "Commit Graph",

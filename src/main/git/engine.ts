@@ -7,8 +7,9 @@
  * dropped in behind the same signatures later without touching the renderer.
  */
 
-import { basename, join } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import { readFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import type {
   Branch,
   Commit,
@@ -17,6 +18,7 @@ import type {
   FileStatus,
   FileStatusCode,
   LogOptions,
+  RepoOperation,
   RepoRef,
   RepoStatus,
   Stash,
@@ -69,6 +71,18 @@ function mapCode(c: string): FileStatusCode {
   }
 }
 
+/** Detect an in-progress merge/cherry-pick/revert/rebase from the git dir. */
+async function detectOperation(repoPath: string): Promise<RepoOperation> {
+  const { stdout } = await runGit(['rev-parse', '--git-dir'], { cwd: repoPath })
+  const gitDir = resolve(repoPath, stdout.trim())
+  if (existsSync(join(gitDir, 'MERGE_HEAD'))) return 'merge'
+  if (existsSync(join(gitDir, 'CHERRY_PICK_HEAD'))) return 'cherry-pick'
+  if (existsSync(join(gitDir, 'REVERT_HEAD'))) return 'revert'
+  if (existsSync(join(gitDir, 'rebase-merge')) || existsSync(join(gitDir, 'rebase-apply')))
+    return 'rebase'
+  return null
+}
+
 export async function status(repoPath: string): Promise<RepoStatus> {
   const { stdout } = await runGit(
     ['status', '--porcelain=v2', '--branch', '--untracked-files=all', '-z'],
@@ -85,6 +99,7 @@ export async function status(repoPath: string): Promise<RepoStatus> {
     unstaged: [],
     untracked: [],
     conflicted: [],
+    operation: await detectOperation(repoPath),
     clean: true
   }
 
@@ -565,6 +580,53 @@ export async function stashPop(repoPath: string, index: number): Promise<void> {
 /** DESTRUCTIVE: discard a stash entry without applying it. */
 export async function stashDrop(repoPath: string, index: number): Promise<void> {
   await runGit(['stash', 'drop', `stash@{${index}}`], { cwd: repoPath })
+}
+
+// --- merge / cherry-pick / revert -------------------------------------------
+//
+// These can stop on conflicts; git exits non-zero and leaves conflict markers,
+// which surfaces as an error to the user (never auto-resolved — CLAUDE.md §3).
+// status().operation then reports the in-progress state so the UI can offer
+// continue/abort.
+
+/** Merge a ref into the current branch. */
+export async function merge(repoPath: string, ref: string): Promise<void> {
+  await runGit(['merge', '--no-edit', ref], { cwd: repoPath })
+}
+
+/** Apply the changes of a commit onto the current branch. */
+export async function cherryPick(repoPath: string, sha: string): Promise<void> {
+  await runGit(['cherry-pick', sha], { cwd: repoPath })
+}
+
+/** Create a new commit that undoes a commit. */
+export async function revert(repoPath: string, sha: string): Promise<void> {
+  await runGit(['revert', '--no-edit', sha], { cwd: repoPath })
+}
+
+/** Abort the in-progress merge/cherry-pick/revert/rebase, restoring HEAD. */
+export async function abortOperation(repoPath: string): Promise<void> {
+  const op = await detectOperation(repoPath)
+  const cmd: Record<string, string> = {
+    merge: 'merge',
+    'cherry-pick': 'cherry-pick',
+    revert: 'revert',
+    rebase: 'rebase'
+  }
+  if (!op) throw new Error('No operation in progress to abort.')
+  await runGit([cmd[op], '--abort'], { cwd: repoPath })
+}
+
+/** Continue the in-progress operation once conflicts have been staged. */
+export async function continueOperation(repoPath: string): Promise<void> {
+  const op = await detectOperation(repoPath)
+  if (!op) throw new Error('No operation in progress to continue.')
+  if (op === 'merge') {
+    // `git merge --continue` needs nothing staged-specific; commit the result.
+    await runGit(['commit', '--no-edit'], { cwd: repoPath })
+  } else {
+    await runGit([op, '--continue'], { cwd: repoPath })
+  }
 }
 
 export async function tags(repoPath: string): Promise<Tag[]> {

@@ -8,6 +8,7 @@ import { ChangesView } from './components/ChangesView'
 import { StatusBar } from './components/StatusBar'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { Toasts } from './components/Toasts'
+import { OperationBanner } from './components/OperationBanner'
 
 export function App(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
@@ -21,6 +22,7 @@ export function App(): React.JSX.Element {
         {activePath ? (
           <main className="flex min-w-0 flex-1 flex-col">
             <ViewTabs />
+            <OperationBanner repoPath={activePath} />
             {viewMode === 'history' ? (
               <div className="flex min-h-0 flex-1">
                 <section className="min-w-0 flex-1 border-r border-border">

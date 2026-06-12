@@ -16,6 +16,7 @@ import {
   applyPartialSchema,
   checkoutRemoteSchema,
   checkoutSchema,
+  cherryPickSchema,
   commitDiffSchema,
   commitSchema,
   createBranchSchema,
@@ -23,9 +24,11 @@ import {
   discardSchema,
   fileOpSchema,
   logSchema,
+  mergeSchema,
   pushSchema,
   renameBranchSchema,
   repoPathSchema,
+  revertSchema,
   stashIndexSchema,
   stashSaveSchema,
   workingDiffSchema
@@ -250,6 +253,46 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoPush,
     wrap(pushSchema, async (req) => {
       await engine.push(req.path, { force: req.force })
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoMerge,
+    wrap(mergeSchema, async (req) => {
+      await engine.merge(req.path, req.ref)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCherryPick,
+    wrap(cherryPickSchema, async (req) => {
+      await engine.cherryPick(req.path, req.sha)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoRevert,
+    wrap(revertSchema, async (req) => {
+      await engine.revert(req.path, req.sha)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoContinueOp,
+    wrap(repoPathSchema, async (req) => {
+      await engine.continueOperation(req.path)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoAbortOp,
+    wrap(repoPathSchema, async (req) => {
+      await engine.abortOperation(req.path)
       return null
     })
   )

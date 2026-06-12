@@ -35,6 +35,9 @@ export interface FileStatus {
   staged: boolean
 }
 
+/** A multi-step Git operation currently in progress in the working tree. */
+export type RepoOperation = 'merge' | 'cherry-pick' | 'revert' | 'rebase' | null
+
 export interface RepoStatus {
   /** Current branch name, or null when in detached HEAD. */
   branch: string | null
@@ -47,6 +50,8 @@ export interface RepoStatus {
   unstaged: FileStatus[]
   untracked: FileStatus[]
   conflicted: FileStatus[]
+  /** A merge/cherry-pick/revert/rebase mid-flight (e.g. awaiting conflict fix). */
+  operation: RepoOperation
   /** True when there are no changes at all. */
   clean: boolean
 }

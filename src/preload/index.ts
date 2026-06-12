@@ -58,7 +58,12 @@ export const cyrexApi = {
   stashDrop: (path: string, index: number) => invoke(IpcChannels.RepoStashDrop, { path, index }),
   fetch: (path: string) => invoke(IpcChannels.RepoFetch, { path }),
   pull: (path: string) => invoke(IpcChannels.RepoPull, { path }),
-  push: (path: string, force?: boolean) => invoke(IpcChannels.RepoPush, { path, force })
+  push: (path: string, force?: boolean) => invoke(IpcChannels.RepoPush, { path, force }),
+  merge: (path: string, ref: string) => invoke(IpcChannels.RepoMerge, { path, ref }),
+  cherryPick: (path: string, sha: string) => invoke(IpcChannels.RepoCherryPick, { path, sha }),
+  revert: (path: string, sha: string) => invoke(IpcChannels.RepoRevert, { path, sha }),
+  continueOperation: (path: string) => invoke(IpcChannels.RepoContinueOp, { path }),
+  abortOperation: (path: string) => invoke(IpcChannels.RepoAbortOp, { path })
 }
 
 export type CyrexApi = typeof cyrexApi

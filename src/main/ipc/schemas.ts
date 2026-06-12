@@ -120,6 +120,10 @@ export const pushSchema = z.object({
   force: z.boolean().optional()
 })
 
+export const mergeSchema = z.object({ path: z.string().min(1), ref: refName })
+export const cherryPickSchema = z.object({ path: z.string().min(1), sha: refName })
+export const revertSchema = z.object({ path: z.string().min(1), sha: refName })
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>
