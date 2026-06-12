@@ -1,8 +1,15 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, session, shell } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, session, shell, Tray } from 'electron'
+import appIcon from '../../build/icon.png?asset'
+import trayIcon from '../../build/tray.png?asset'
 import { registerIpcHandlers } from './ipc'
 
 const isDev = !app.isPackaged
+
+let mainWindow: BrowserWindow | null = null
+let tray: Tray | null = null
+// Distinguishes "close to tray" from a real quit (set by the tray Quit item).
+let isQuitting = false
 
 /**
  * Content-Security-Policy applied to every response. No remote code, no eval.
@@ -39,6 +46,8 @@ function createWindow(): void {
     show: false,
     backgroundColor: '#0e0f12',
     autoHideMenuBar: true,
+    // Window / taskbar icon (Linux + Windows; macOS uses the bundle icon).
+    icon: appIcon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       // Electron security checklist (CLAUDE.md §4):
@@ -50,7 +59,20 @@ function createWindow(): void {
     }
   })
 
+  mainWindow = win
   win.once('ready-to-show', () => win.show())
+
+  // Closing the window hides it to the tray instead of quitting; the tray's
+  // Quit item (which sets isQuitting) is the way to actually exit.
+  win.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault()
+      win.hide()
+    }
+  })
+  win.on('closed', () => {
+    mainWindow = null
+  })
 
   // Open all external links in the system browser; never inside the app.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -75,6 +97,44 @@ function createWindow(): void {
   }
 }
 
+/** Bring the main window to the foreground, recreating it if it was closed. */
+function showWindow(): void {
+  if (!mainWindow) {
+    createWindow()
+    return
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+}
+
+/** Create the system-tray icon with a Show/Quit menu. */
+function createTray(): void {
+  try {
+    const image = nativeImage.createFromPath(trayIcon)
+    tray = new Tray(image)
+    tray.setToolTip('Cyrex')
+    tray.setContextMenu(
+      Menu.buildFromTemplate([
+        { label: 'Show Cyrex', click: () => showWindow() },
+        { type: 'separator' },
+        {
+          label: 'Quit Cyrex',
+          click: () => {
+            isQuitting = true
+            app.quit()
+          }
+        }
+      ])
+    )
+    // Primary click reveals the window (best-effort: not all Linux trays emit it).
+    tray.on('click', () => showWindow())
+  } catch (err) {
+    // A missing StatusNotifier host shouldn't take the app down.
+    console.error('Tray unavailable:', err)
+  }
+}
+
 app.whenReady().then(() => {
   // Apply CSP to every response from the default session.
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -91,12 +151,17 @@ app.whenReady().then(() => {
 
   registerIpcHandlers()
   createWindow()
+  createTray()
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+  app.on('activate', () => showWindow())
 })
 
+// The app lives in the tray, so closing the last window does not quit (except
+// on macOS, which keeps apps running without windows by convention anyway).
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
+  /* intentionally no-op: quit happens via the tray's Quit item */
+})
+
+app.on('before-quit', () => {
+  isQuitting = true
 })

@@ -6,8 +6,7 @@ out/
 dist/
 *.tsbuildinfo
 
-# Native module build artifacts
-build/
+# Native module build artifacts (node-gyp output lives under node_modules)
 prebuilds/
 
 # Logs

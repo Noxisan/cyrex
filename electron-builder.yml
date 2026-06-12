@@ -25,12 +25,14 @@ nsis:
   perMachine: false
 
 # --- Linux: AppImage + deb ---
+# App / installer icons are taken from build/icon.png (the buildResources dir).
 linux:
   target:
     - AppImage
     - deb
   category: Development
   maintainer: Noxisan <bambeletuna@protonmail.com>
+  icon: build/icon.png
 
 # --- macOS: dmg (must be built on a real macOS machine / CI runner) ---
 mac:
