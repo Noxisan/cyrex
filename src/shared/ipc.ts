@@ -32,6 +32,8 @@ export const IpcChannels = {
   RepoWorkingDiff: 'repo:workingDiff',
   RepoStage: 'repo:stage',
   RepoUnstage: 'repo:unstage',
+  /** Stage/unstage/discard a single hunk or selected lines within it. */
+  RepoApplyPartial: 'repo:applyPartial',
   /** DESTRUCTIVE — discard a file's working changes (must be confirmed). */
   RepoDiscard: 'repo:discard',
   RepoCommit: 'repo:commit',
@@ -90,6 +92,16 @@ export interface IpcApi {
   }
   [IpcChannels.RepoUnstage]: {
     request: { path: string; file: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoApplyPartial]: {
+    request: {
+      path: string
+      file: string
+      hunkIndex: number
+      lines?: number[]
+      op: 'stage' | 'unstage' | 'discard'
+    }
     response: EngineResult<null>
   }
   [IpcChannels.RepoDiscard]: {

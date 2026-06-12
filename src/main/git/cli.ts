@@ -39,6 +39,8 @@ export interface GitRunOptions {
   timeoutMs?: number
   /** Reject the promise on a non-zero exit (default true). */
   throwOnError?: boolean
+  /** Text written to the process's stdin (e.g. a patch for `git apply`). */
+  input?: string
 }
 
 export interface GitRunResult {
@@ -52,7 +54,7 @@ export interface GitRunResult {
  * walks, big diffs) prefer a streaming variant — added as the engine grows.
  */
 export function runGit(args: string[], opts: GitRunOptions = {}): Promise<GitRunResult> {
-  const { cwd, timeoutMs = 30_000, throwOnError = true } = opts
+  const { cwd, timeoutMs = 30_000, throwOnError = true, input } = opts
 
   return new Promise((resolve, reject) => {
     const child = spawn('git', args, {
@@ -77,6 +79,13 @@ export function runGit(args: string[], opts: GitRunOptions = {}): Promise<GitRun
       child.kill('SIGKILL')
       reject(new GitError(`git ${args[0]} timed out after ${timeoutMs}ms`, null, ''))
     }, timeoutMs)
+
+    if (input !== undefined) {
+      child.stdin.on('error', () => {
+        /* ignore EPIPE if git exits before consuming all input */
+      })
+      child.stdin.end(input)
+    }
 
     child.stdout.setEncoding('utf8')
     child.stderr.setEncoding('utf8')

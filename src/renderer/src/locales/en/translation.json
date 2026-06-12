@@ -57,7 +57,18 @@
     "commitPlaceholder": "Commit message (Ctrl+Enter to commit)",
     "committing": "Committing…",
     "commit_one": "Commit {{count}} file to {{branch}}",
-    "commit_other": "Commit {{count}} files to {{branch}}"
+    "commit_other": "Commit {{count}} files to {{branch}}",
+    "stageHunk": "Stage hunk",
+    "unstageHunk": "Unstage hunk",
+    "discardHunk": "Discard hunk",
+    "discardConfirm": "Discard?",
+    "clear": "Clear selection",
+    "linesSelected_one": "{{count}} line selected",
+    "linesSelected_other": "{{count}} lines selected",
+    "stageLines_one": "Stage {{count}} line",
+    "stageLines_other": "Stage {{count}} lines",
+    "unstageLines_one": "Unstage {{count}} line",
+    "unstageLines_other": "Unstage {{count}} lines"
   },
   "status": {
     "clean": "Working tree clean",

@@ -23,6 +23,7 @@ import type {
 } from '@shared/types'
 import { gitVersion, isGitRepo, runGit } from './cli'
 import { parseUnifiedDiff } from './diff'
+import { buildPatch } from './patch'
 
 const US = '\x1f' // unit separator — between fields
 const RS = '\x1e' // record separator — between records
@@ -368,6 +369,44 @@ export async function commit(repoPath: string, message: string): Promise<CommitR
   await runGit(['commit', '-m', trimmed], { cwd: repoPath })
   const { stdout } = await runGit(['rev-parse', 'HEAD'], { cwd: repoPath })
   return { sha: stdout.trim() }
+}
+
+export type PartialOp = 'stage' | 'unstage' | 'discard'
+
+export interface PartialOptions {
+  file: string
+  /** Index of the hunk within the file's current diff. */
+  hunkIndex: number
+  /** Entry indices within the hunk to apply; omit for the whole hunk. */
+  lines?: number[]
+  op: PartialOp
+}
+
+async function fileDiffText(repoPath: string, file: string, staged: boolean): Promise<string> {
+  const args = ['diff', '--no-color', '-U3', '-M', '--find-renames']
+  if (staged) args.push('--cached')
+  args.push('--', file)
+  const { stdout } = await runGit(args, { cwd: repoPath })
+  return stdout
+}
+
+/**
+ * Apply a single hunk (or selected lines within it) to the index or working
+ * tree. `stage` adds working changes to the index; `unstage` removes them from
+ * the index; `discard` (DESTRUCTIVE) reverts them in the working tree. The
+ * source diff is always re-fetched so we patch the authoritative current state.
+ */
+export async function applyPartial(repoPath: string, opts: PartialOptions): Promise<void> {
+  const { file, hunkIndex, lines, op } = opts
+  // unstage works from the staged (index vs HEAD) diff; the others from working.
+  const raw = await fileDiffText(repoPath, file, op === 'unstage')
+  if (!raw.trim()) throw new Error('Nothing to apply — the diff is empty (already applied?).')
+
+  const patch = buildPatch(raw, hunkIndex, lines)
+  const args = ['apply', '--recount', '--whitespace=nowarn']
+  if (op === 'stage' || op === 'unstage') args.push('--cached')
+  if (op === 'unstage' || op === 'discard') args.push('--reverse')
+  await runGit(args, { cwd: repoPath, input: patch })
 }
 
 export async function tags(repoPath: string): Promise<Tag[]> {

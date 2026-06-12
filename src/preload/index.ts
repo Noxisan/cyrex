@@ -30,6 +30,13 @@ export const cyrexApi = {
     invoke(IpcChannels.RepoWorkingDiff, { path, file, staged, untracked }),
   stage: (path: string, file: string) => invoke(IpcChannels.RepoStage, { path, file }),
   unstage: (path: string, file: string) => invoke(IpcChannels.RepoUnstage, { path, file }),
+  applyPartial: (
+    path: string,
+    file: string,
+    hunkIndex: number,
+    op: 'stage' | 'unstage' | 'discard',
+    lines?: number[]
+  ) => invoke(IpcChannels.RepoApplyPartial, { path, file, hunkIndex, lines, op }),
   discard: (path: string, file: string, untracked: boolean) =>
     invoke(IpcChannels.RepoDiscard, { path, file, untracked }),
   commit: (path: string, message: string) => invoke(IpcChannels.RepoCommit, { path, message })

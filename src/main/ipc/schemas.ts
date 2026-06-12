@@ -60,6 +60,14 @@ export const discardSchema = z.object({
   untracked: z.boolean()
 })
 
+export const applyPartialSchema = z.object({
+  path: z.string().min(1),
+  file: relFile,
+  hunkIndex: z.number().int().nonnegative(),
+  lines: z.array(z.number().int().nonnegative()).optional(),
+  op: z.enum(['stage', 'unstage', 'discard'])
+})
+
 export const commitSchema = z.object({
   path: z.string().min(1),
   message: z.string().min(1).max(20_000)
