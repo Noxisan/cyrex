@@ -57,7 +57,18 @@
     "commitPlaceholder": "Commit-Nachricht (Strg+Enter zum Committen)",
     "committing": "Wird committet…",
     "commit_one": "{{count}} Datei nach {{branch}} committen",
-    "commit_other": "{{count}} Dateien nach {{branch}} committen"
+    "commit_other": "{{count}} Dateien nach {{branch}} committen",
+    "stageHunk": "Hunk bereitstellen",
+    "unstageHunk": "Hunk entfernen",
+    "discardHunk": "Hunk verwerfen",
+    "discardConfirm": "Verwerfen?",
+    "clear": "Auswahl aufheben",
+    "linesSelected_one": "{{count}} Zeile ausgewählt",
+    "linesSelected_other": "{{count}} Zeilen ausgewählt",
+    "stageLines_one": "{{count}} Zeile bereitstellen",
+    "stageLines_other": "{{count}} Zeilen bereitstellen",
+    "unstageLines_one": "{{count}} Zeile entfernen",
+    "unstageLines_other": "{{count}} Zeilen entfernen"
   },
   "status": {
     "clean": "Arbeitsverzeichnis sauber",

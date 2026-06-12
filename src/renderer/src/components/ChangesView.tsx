@@ -3,7 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Minus, Undo2, Check } from 'lucide-react'
 import type { FileStatus } from '@shared/types'
 import { useRepoStore } from '../store/repoStore'
-import { useDiscard, useStage, useStatus, useUnstage, useWorkingDiff } from '../hooks/useRepo'
+import {
+  useApplyPartial,
+  useDiscard,
+  useStage,
+  useStatus,
+  useUnstage,
+  useWorkingDiff
+} from '../hooks/useRepo'
 import { DiffPanel } from './DiffPanel'
 import { CommitBox } from './CommitBox'
 
@@ -146,6 +153,7 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
   const stage = useStage(repoPath)
   const unstage = useUnstage(repoPath)
   const discard = useDiscard(repoPath)
+  const applyPartial = useApplyPartial(repoPath)
 
   const diff = useWorkingDiff(
     repoPath,
@@ -245,6 +253,18 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
             isLoading={diff.isLoading}
             error={diff.error as Error | null}
             title={selectedFile.file}
+            actions={
+              // Untracked files have no hunks to partial-stage; stage them whole.
+              selectedFile.untracked
+                ? undefined
+                : {
+                    staged: selectedFile.staged,
+                    onHunk: (hunkIndex, op) =>
+                      applyPartial.mutate({ file: selectedFile.file, hunkIndex, op }),
+                    onLines: (hunkIndex, lines, op) =>
+                      applyPartial.mutate({ file: selectedFile.file, hunkIndex, lines, op })
+                  }
+            }
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-6 text-center">

@@ -101,6 +101,17 @@ export function useDiscard(path: string) {
   )
 }
 
+export function useApplyPartial(path: string) {
+  return useRepoMutation(
+    (v: {
+      file: string
+      hunkIndex: number
+      op: 'stage' | 'unstage' | 'discard'
+      lines?: number[]
+    }) => window.cyrex.applyPartial(path, v.file, v.hunkIndex, v.op, v.lines)
+  )
+}
+
 export function useCommit(path: string) {
   return useRepoMutation((message: string) => window.cyrex.commit(path, message))
 }

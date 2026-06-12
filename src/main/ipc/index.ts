@@ -13,6 +13,7 @@ import type { EngineResult, RepoRef } from '@shared/types'
 import * as engine from '../git/engine'
 import { scrubSecrets } from '../git/cli'
 import {
+  applyPartialSchema,
   commitDiffSchema,
   commitSchema,
   discardSchema,
@@ -111,6 +112,19 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoUnstage,
     wrap(fileOpSchema, async (req) => {
       await engine.unstage(req.path, req.file)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoApplyPartial,
+    wrap(applyPartialSchema, async (req) => {
+      await engine.applyPartial(req.path, {
+        file: req.file,
+        hunkIndex: req.hunkIndex,
+        lines: req.lines,
+        op: req.op
+      })
       return null
     })
   )
