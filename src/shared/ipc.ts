@@ -52,6 +52,11 @@ export const IpcChannels = {
   RepoStashPop: 'repo:stashPop',
   /** DESTRUCTIVE — discards a stash without applying it. */
   RepoStashDrop: 'repo:stashDrop',
+  /** Network operations (credentials handled by the system git). */
+  RepoFetch: 'repo:fetch',
+  RepoPull: 'repo:pull',
+  /** DESTRUCTIVE when force is set (force-with-lease can overwrite remote work). */
+  RepoPush: 'repo:push',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -165,6 +170,18 @@ export interface IpcApi {
   }
   [IpcChannels.RepoStashDrop]: {
     request: { path: string; index: number }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoFetch]: {
+    request: { path: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoPull]: {
+    request: { path: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoPush]: {
+    request: { path: string; force?: boolean }
     response: EngineResult<null>
   }
   [IpcChannels.EngineInfo]: {

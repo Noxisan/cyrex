@@ -115,6 +115,11 @@ export const stashIndexSchema = z.object({
   index: z.number().int().nonnegative().max(10_000)
 })
 
+export const pushSchema = z.object({
+  path: z.string().min(1),
+  force: z.boolean().optional()
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>

@@ -47,6 +47,13 @@
     "drop": "Drop stash",
     "dropMessage": "Drop this stash? Its changes will be discarded and cannot be recovered."
   },
+  "remote": {
+    "fetched": "Fetched from remote",
+    "pulled": "Pulled changes",
+    "pushed": "Pushed to remote",
+    "forcePush": "Force push",
+    "forcePushMessage": "Force-push with lease? This can overwrite commits on the remote if others have pushed since your last fetch."
+  },
   "graph": {
     "title": "Commit Graph",
     "empty": "No commits to display.",

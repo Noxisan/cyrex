@@ -47,6 +47,13 @@
     "drop": "Stash verwerfen",
     "dropMessage": "Diesen Stash verwerfen? Die Änderungen gehen unwiederbringlich verloren."
   },
+  "remote": {
+    "fetched": "Vom Remote geholt",
+    "pulled": "Änderungen gepullt",
+    "pushed": "Zum Remote gepusht",
+    "forcePush": "Push erzwingen",
+    "forcePushMessage": "Mit Lease erzwingen? Dies kann Commits auf dem Remote überschreiben, falls andere seit deinem letzten Fetch gepusht haben."
+  },
   "graph": {
     "title": "Commit-Graph",
     "empty": "Keine Commits vorhanden.",

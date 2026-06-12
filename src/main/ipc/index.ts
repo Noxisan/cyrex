@@ -23,6 +23,7 @@ import {
   discardSchema,
   fileOpSchema,
   logSchema,
+  pushSchema,
   renameBranchSchema,
   repoPathSchema,
   stashIndexSchema,
@@ -225,6 +226,30 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoStashDrop,
     wrap(stashIndexSchema, async (req) => {
       await engine.stashDrop(req.path, req.index)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoFetch,
+    wrap(repoPathSchema, async (req) => {
+      await engine.fetch(req.path)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoPull,
+    wrap(repoPathSchema, async (req) => {
+      await engine.pull(req.path)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoPush,
+    wrap(pushSchema, async (req) => {
+      await engine.push(req.path, { force: req.force })
       return null
     })
   )

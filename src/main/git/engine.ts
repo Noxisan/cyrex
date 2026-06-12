@@ -471,6 +471,64 @@ export async function deleteBranch(
   await runGit(['branch', force ? '-D' : '-d', name], { cwd: repoPath })
 }
 
+// --- remotes: fetch / pull / push -------------------------------------------
+//
+// Network operations delegate credentials entirely to the user's system git
+// (credential helper for HTTPS, ssh-agent/keys for SSH) — Cyrex never handles
+// or stores secrets (CLAUDE.md §4). With GIT_TERMINAL_PROMPT=0 a missing
+// credential fails fast with a clear error instead of hanging on a prompt.
+
+const NETWORK_TIMEOUT = 120_000
+
+/** Name of the remote to push to by default ("origin" if present). */
+async function defaultRemote(repoPath: string): Promise<string> {
+  const { stdout } = await runGit(['remote'], { cwd: repoPath })
+  const remotes = stdout.split('\n').map((r) => r.trim()).filter(Boolean)
+  if (remotes.length === 0) throw new Error('No remote is configured for this repository.')
+  return remotes.includes('origin') ? 'origin' : remotes[0]
+}
+
+/** Fetch all remotes and prune deleted remote-tracking branches. */
+export async function fetch(repoPath: string): Promise<void> {
+  await runGit(['fetch', '--all', '--prune'], { cwd: repoPath, timeoutMs: NETWORK_TIMEOUT })
+}
+
+/** Pull the current branch from its upstream (merge per the user's git config). */
+export async function pull(repoPath: string): Promise<void> {
+  await runGit(['pull'], { cwd: repoPath, timeoutMs: NETWORK_TIMEOUT })
+}
+
+export interface PushOptions {
+  /** Force with lease — refuses to clobber unseen upstream work. Destructive. */
+  force?: boolean
+}
+
+/** Push the current branch, setting upstream on first push. */
+export async function push(repoPath: string, opts: PushOptions = {}): Promise<void> {
+  const branch = (
+    await runGit(['symbolic-ref', '--quiet', '--short', 'HEAD'], {
+      cwd: repoPath,
+      throwOnError: false
+    })
+  ).stdout.trim()
+  if (!branch) throw new Error('Cannot push in a detached HEAD state.')
+
+  const upstream = (
+    await runGit(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}'], {
+      cwd: repoPath,
+      throwOnError: false
+    })
+  ).stdout.trim()
+
+  const args = ['push']
+  if (opts.force) args.push('--force-with-lease')
+  if (!upstream) {
+    // First push: publish the branch and set its upstream.
+    args.push('-u', await defaultRemote(repoPath), 'HEAD')
+  }
+  await runGit(args, { cwd: repoPath, timeoutMs: NETWORK_TIMEOUT })
+}
+
 // --- stash -----------------------------------------------------------------
 
 export async function stashList(repoPath: string): Promise<Stash[]> {

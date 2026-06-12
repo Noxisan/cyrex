@@ -5,6 +5,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import type { EngineResult, LogOptions } from '@shared/types'
 import { useToastStore } from '../store/toastStore'
 
@@ -77,9 +78,13 @@ export function useWorkingDiff(
 
 /**
  * Invalidate everything a repo mutation can affect, and surface any Git error
- * as a toast so operations never fail silently.
+ * as a toast so operations never fail silently. An optional success message is
+ * toasted on completion (used for network ops that otherwise give no feedback).
  */
-function useRepoMutation<TVars>(fn: (vars: TVars) => Promise<EngineResult<unknown>>) {
+function useRepoMutation<TVars>(
+  fn: (vars: TVars) => Promise<EngineResult<unknown>>,
+  successMessage?: string
+) {
   const qc = useQueryClient()
   const pushToast = useToastStore((s) => s.push)
   return useMutation({
@@ -88,6 +93,7 @@ function useRepoMutation<TVars>(fn: (vars: TVars) => Promise<EngineResult<unknow
       for (const key of ['status', 'workingDiff', 'log', 'branches', 'tags', 'stashes']) {
         void qc.invalidateQueries({ queryKey: [key] })
       }
+      if (successMessage) pushToast(successMessage, 'success')
     },
     onError: (err) => pushToast((err as Error).message, 'error')
   })
@@ -166,6 +172,21 @@ export function useStashPop(path: string) {
 
 export function useStashDrop(path: string) {
   return useRepoMutation((index: number) => window.cyrex.stashDrop(path, index))
+}
+
+export function useFetch(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation(() => window.cyrex.fetch(path), t('remote.fetched'))
+}
+
+export function usePull(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation(() => window.cyrex.pull(path), t('remote.pulled'))
+}
+
+export function usePush(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation((force?: boolean) => window.cyrex.push(path, force), t('remote.pushed'))
 }
 
 export function useCommit(path: string) {
