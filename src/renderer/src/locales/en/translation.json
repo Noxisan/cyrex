@@ -59,6 +59,13 @@
     "cherryPick": "Cherry-pick onto current branch",
     "revert": "Revert this commit"
   },
+  "inspector": {
+    "open": "File history and blame",
+    "history": "History",
+    "blame": "Blame",
+    "noHistory": "No history for this file.",
+    "jumpToCommit": "Show this commit in the graph"
+  },
   "operation": {
     "merge": "Merge",
     "cherry-pick": "Cherry-pick",

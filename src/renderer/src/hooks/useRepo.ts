@@ -53,6 +53,22 @@ export function useTags(path: string | null) {
   })
 }
 
+export function useFileHistory(path: string | null, file: string | null) {
+  return useQuery({
+    queryKey: ['fileHistory', path, file],
+    enabled: !!path && !!file,
+    queryFn: async () => unwrap(await window.cyrex.fileHistory(path!, file!))
+  })
+}
+
+export function useBlame(path: string | null, file: string | null) {
+  return useQuery({
+    queryKey: ['blame', path, file],
+    enabled: !!path && !!file,
+    queryFn: async () => unwrap(await window.cyrex.blame(path!, file!))
+  })
+}
+
 export function useCommitDiff(path: string | null, sha: string | null) {
   return useQuery({
     queryKey: ['commitDiff', path, sha],

@@ -153,6 +153,19 @@ export interface CommitDiff {
   files: DiffFile[]
 }
 
+export interface BlameLine {
+  /** 1-based line number in the final file. */
+  line: number
+  sha: string
+  shortSha: string
+  author: string
+  /** ISO-8601 timestamp of the commit that last touched this line. */
+  date: string
+  summary: string
+  /** The line's text content. */
+  content: string
+}
+
 /**
  * Standard envelope for every engine result so the renderer can render real
  * error states instead of silently faking success (CLAUDE.md core principle:

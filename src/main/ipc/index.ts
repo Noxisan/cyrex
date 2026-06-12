@@ -296,4 +296,14 @@ export function registerIpcHandlers(): void {
       return null
     })
   )
+
+  ipcMain.handle(
+    IpcChannels.RepoFileHistory,
+    wrap(fileOpSchema, (req) => engine.fileHistory(req.path, req.file))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoBlame,
+    wrap(fileOpSchema, (req) => engine.blame(req.path, req.file))
+  )
 }

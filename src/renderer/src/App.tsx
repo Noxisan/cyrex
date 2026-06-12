@@ -9,6 +9,7 @@ import { StatusBar } from './components/StatusBar'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { Toasts } from './components/Toasts'
 import { OperationBanner } from './components/OperationBanner'
+import { FileInspector } from './components/FileInspector'
 
 export function App(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
@@ -41,6 +42,7 @@ export function App(): React.JSX.Element {
         )}
       </div>
       <StatusBar />
+      <FileInspector />
       <Toasts />
     </div>
   )

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Columns2, AlignLeft, FileDiff, Plus, Minus, Undo2, X } from 'lucide-react'
+import { Columns2, AlignLeft, FileDiff, History, Plus, Minus, Undo2, X } from 'lucide-react'
 import type { DiffFile, DiffLine } from '@shared/types'
+import { useRepoStore } from '../store/repoStore'
 
 type ViewMode = 'inline' | 'split'
 export type PartialOp = 'stage' | 'unstage' | 'discard'
@@ -165,6 +166,7 @@ function FileBlock({
   actions?: DiffActions
 }): React.JSX.Element {
   const { t } = useTranslation()
+  const openInspector = useRepoStore((s) => s.openInspector)
   const [open, setOpen] = useState(true)
   const [sel, setSel] = useState<{ hunk: number; lines: Set<number> } | null>(null)
   const [confirmHunk, setConfirmHunk] = useState<number | null>(null)
@@ -188,20 +190,33 @@ function FileBlock({
 
   return (
     <div className="border-b border-border">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 bg-surface-2/40 px-3 py-1.5 text-start text-xs hover:bg-surface-2"
-      >
-        <span className={`w-3 shrink-0 font-mono font-semibold ${statusColor(file.status)}`}>
-          {STATUS_LABEL[file.status] ?? ' '}
-        </span>
-        <span className="min-w-0 flex-1 truncate font-mono text-fg" title={file.path}>
-          {file.oldPath && file.oldPath !== file.path ? `${file.oldPath} → ${file.path}` : file.path}
-        </span>
-        {file.additions > 0 && <span className="text-diff-add">+{file.additions}</span>}
-        {file.deletions > 0 && <span className="text-diff-remove">-{file.deletions}</span>}
-      </button>
+      <div className="group/header flex items-center gap-2 bg-surface-2/40 px-3 py-1.5 text-xs hover:bg-surface-2">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex min-w-0 flex-1 items-center gap-2 text-start"
+        >
+          <span className={`w-3 shrink-0 font-mono font-semibold ${statusColor(file.status)}`}>
+            {STATUS_LABEL[file.status] ?? ' '}
+          </span>
+          <span className="min-w-0 flex-1 truncate font-mono text-fg" title={file.path}>
+            {file.oldPath && file.oldPath !== file.path
+              ? `${file.oldPath} → ${file.path}`
+              : file.path}
+          </span>
+          {file.additions > 0 && <span className="text-diff-add">+{file.additions}</span>}
+          {file.deletions > 0 && <span className="text-diff-remove">-{file.deletions}</span>}
+        </button>
+        <button
+          type="button"
+          onClick={() => openInspector(file.path, 'history')}
+          title={t('inspector.open')}
+          aria-label={t('inspector.open')}
+          className="shrink-0 rounded-[var(--radius-card)] p-0.5 text-fg-subtle opacity-0 transition-opacity hover:text-accent group-hover/header:opacity-100"
+        >
+          <History size={13} strokeWidth={1.75} />
+        </button>
+      </div>
 
       {actions && sel && (
         <div className="flex items-center gap-2 border-b border-border bg-accent/10 px-3 py-1 text-xs">

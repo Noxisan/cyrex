@@ -23,6 +23,9 @@ interface RepoState {
   selectedSha: string | null
   viewMode: ViewMode
   selectedFile: SelectedFile | null
+  /** File path open in the history/blame inspector overlay, if any. */
+  inspectorFile: string | null
+  inspectorTab: 'history' | 'blame'
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
@@ -30,6 +33,8 @@ interface RepoState {
   selectCommit: (sha: string | null) => void
   setViewMode: (mode: ViewMode) => void
   selectFile: (file: SelectedFile | null) => void
+  openInspector: (file: string, tab?: 'history' | 'blame') => void
+  closeInspector: () => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -62,6 +67,8 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   selectedSha: null,
   viewMode: 'history',
   selectedFile: null,
+  inspectorFile: null,
+  inspectorTab: 'history',
   theme: initialTheme(),
 
   addRepo: (repo) =>
@@ -71,10 +78,13 @@ export const useRepoStore = create<RepoState>((set, get) => ({
       return { repos, activePath: repo.path, selectedSha: null, selectedFile: null }
     }),
 
-  setActive: (path) => set({ activePath: path, selectedSha: null, selectedFile: null }),
+  setActive: (path) =>
+    set({ activePath: path, selectedSha: null, selectedFile: null, inspectorFile: null }),
   selectCommit: (sha) => set({ selectedSha: sha }),
   setViewMode: (mode) => set({ viewMode: mode }),
   selectFile: (file) => set({ selectedFile: file }),
+  openInspector: (file, tab = 'history') => set({ inspectorFile: file, inspectorTab: tab }),
+  closeInspector: () => set({ inspectorFile: null }),
 
   setTheme: (theme) => {
     localStorage.setItem(THEME_KEY, theme)

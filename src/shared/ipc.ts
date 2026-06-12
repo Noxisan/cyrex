@@ -7,6 +7,7 @@
  */
 
 import type {
+  BlameLine,
   Branch,
   Commit,
   CommitDiff,
@@ -63,6 +64,9 @@ export const IpcChannels = {
   RepoRevert: 'repo:revert',
   RepoContinueOp: 'repo:continueOperation',
   RepoAbortOp: 'repo:abortOperation',
+  /** Per-file inspection. */
+  RepoFileHistory: 'repo:fileHistory',
+  RepoBlame: 'repo:blame',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -209,6 +213,14 @@ export interface IpcApi {
   [IpcChannels.RepoAbortOp]: {
     request: { path: string }
     response: EngineResult<null>
+  }
+  [IpcChannels.RepoFileHistory]: {
+    request: { path: string; file: string }
+    response: EngineResult<Commit[]>
+  }
+  [IpcChannels.RepoBlame]: {
+    request: { path: string; file: string }
+    response: EngineResult<BlameLine[]>
   }
   [IpcChannels.EngineInfo]: {
     request: void

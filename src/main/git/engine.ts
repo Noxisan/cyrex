@@ -11,6 +11,7 @@ import { basename, join, resolve } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import type {
+  BlameLine,
   Branch,
   Commit,
   CommitDiff,
@@ -183,21 +184,11 @@ export async function status(repoPath: string): Promise<RepoStatus> {
 
 // --- log -------------------------------------------------------------------
 
-export async function log(repoPath: string, options: LogOptions = {}): Promise<Commit[]> {
-  const { limit = 200, skip = 0, ref } = options
-  const format =
-    [
-      '%H', '%h', '%P', '%an', '%ae', '%aI', '%cn', '%ce', '%cI', '%D', '%s', '%b'
-    ].join(US) + RS
+const LOG_FORMAT =
+  ['%H', '%h', '%P', '%an', '%ae', '%aI', '%cn', '%ce', '%cI', '%D', '%s', '%b'].join(US) + RS
 
-  // --topo-order keeps branch lines contiguous so the lane graph reads cleanly
-  // (default date order interleaves parallel branches).
-  const args = ['log', '--topo-order', `--format=${format}`, `--max-count=${limit}`]
-  if (skip > 0) args.push(`--skip=${skip}`)
-  args.push(ref ?? '--all')
-
-  const { stdout } = await runGit(args, { cwd: repoPath })
-
+/** Parse the RS/US-delimited output produced by LOG_FORMAT. */
+function parseCommits(stdout: string): Commit[] {
   const commits: Commit[] = []
   for (const raw of stdout.split(RS)) {
     const rec = raw.replace(/^\n/, '')
@@ -220,6 +211,69 @@ export async function log(repoPath: string, options: LogOptions = {}): Promise<C
     })
   }
   return commits
+}
+
+export async function log(repoPath: string, options: LogOptions = {}): Promise<Commit[]> {
+  const { limit = 200, skip = 0, ref } = options
+  // --topo-order keeps branch lines contiguous so the lane graph reads cleanly
+  // (default date order interleaves parallel branches).
+  const args = ['log', '--topo-order', `--format=${LOG_FORMAT}`, `--max-count=${limit}`]
+  if (skip > 0) args.push(`--skip=${skip}`)
+  args.push(ref ?? '--all')
+  const { stdout } = await runGit(args, { cwd: repoPath })
+  return parseCommits(stdout)
+}
+
+/** History of a single file, following renames. */
+export async function fileHistory(
+  repoPath: string,
+  file: string,
+  options: LogOptions = {}
+): Promise<Commit[]> {
+  const { limit = 200, skip = 0 } = options
+  const args = ['log', '--follow', `--format=${LOG_FORMAT}`, `--max-count=${limit}`]
+  if (skip > 0) args.push(`--skip=${skip}`)
+  args.push('--', file)
+  const { stdout } = await runGit(args, { cwd: repoPath })
+  return parseCommits(stdout)
+}
+
+// --- blame -----------------------------------------------------------------
+
+/**
+ * Line-by-line authorship of a file. Parses `git blame --line-porcelain`, where
+ * every line carries its full commit header (simplest to parse robustly).
+ */
+export async function blame(repoPath: string, file: string): Promise<BlameLine[]> {
+  const { stdout } = await runGit(['blame', '--line-porcelain', '--', file], { cwd: repoPath })
+
+  const lines: BlameLine[] = []
+  let cur: Partial<BlameLine> & { sha?: string } = {}
+  for (const line of stdout.split('\n')) {
+    // Header line: "<40-hex> <origLine> <finalLine> [<group size>]"
+    const head = line.match(/^([0-9a-f]{40}) \d+ (\d+)/)
+    if (head) {
+      cur = { sha: head[1], shortSha: head[1].slice(0, 7), line: Number(head[2]) }
+      continue
+    }
+    if (line.startsWith('author ')) cur.author = line.slice(7)
+    else if (line.startsWith('author-time ')) {
+      cur.date = new Date(Number(line.slice(12)) * 1000).toISOString()
+    } else if (line.startsWith('summary ')) cur.summary = line.slice(8)
+    else if (line.startsWith('\t')) {
+      // The content line (prefixed by a tab) ends the entry.
+      lines.push({
+        line: cur.line ?? lines.length + 1,
+        sha: cur.sha ?? '',
+        shortSha: cur.shortSha ?? '',
+        author: cur.author ?? '',
+        date: cur.date ?? '',
+        summary: cur.summary ?? '',
+        content: line.slice(1)
+      })
+    }
+  }
+  return lines
 }
 
 // --- branches & tags -------------------------------------------------------

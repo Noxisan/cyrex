@@ -63,7 +63,10 @@ export const cyrexApi = {
   cherryPick: (path: string, sha: string) => invoke(IpcChannels.RepoCherryPick, { path, sha }),
   revert: (path: string, sha: string) => invoke(IpcChannels.RepoRevert, { path, sha }),
   continueOperation: (path: string) => invoke(IpcChannels.RepoContinueOp, { path }),
-  abortOperation: (path: string) => invoke(IpcChannels.RepoAbortOp, { path })
+  abortOperation: (path: string) => invoke(IpcChannels.RepoAbortOp, { path }),
+  fileHistory: (path: string, file: string) =>
+    invoke(IpcChannels.RepoFileHistory, { path, file }),
+  blame: (path: string, file: string) => invoke(IpcChannels.RepoBlame, { path, file })
 }
 
 export type CyrexApi = typeof cyrexApi
