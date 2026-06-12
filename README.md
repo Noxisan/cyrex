@@ -43,6 +43,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Commit graph (lanes, refs, tags) | Done |
 | Status (staged / unstaged / untracked / conflicts) | Done |
 | Branch and tag listing | Done |
+| Branch checkout / create / rename / delete | Done |
 | Per-commit diff view (inline + side-by-side) | Done |
 | Syntax highlighting in diffs | Planned |
 | Stage / unstage / discard by file | Done |
