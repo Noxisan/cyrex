@@ -14,6 +14,9 @@ prebuilds/
 *.log
 npm-debug.log*
 
+# Local tool state (machine-local, churns constantly — not for version control)
+.swarmmind/
+
 # Editor / OS
 .DS_Store
 .directory
