@@ -8,16 +8,28 @@ import { create } from 'zustand'
 import type { RepoRef } from '@shared/types'
 
 export type Theme = 'dark' | 'light'
+export type ViewMode = 'history' | 'changes'
+
+/** A working-tree file the user has selected to diff in the Changes view. */
+export interface SelectedFile {
+  file: string
+  staged: boolean
+  untracked: boolean
+}
 
 interface RepoState {
   repos: RepoRef[]
   activePath: string | null
   selectedSha: string | null
+  viewMode: ViewMode
+  selectedFile: SelectedFile | null
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
   setActive: (path: string | null) => void
   selectCommit: (sha: string | null) => void
+  setViewMode: (mode: ViewMode) => void
+  selectFile: (file: SelectedFile | null) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -48,17 +60,21 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   repos: loadRepos(),
   activePath: null,
   selectedSha: null,
+  viewMode: 'history',
+  selectedFile: null,
   theme: initialTheme(),
 
   addRepo: (repo) =>
     set((s) => {
       const repos = [repo, ...s.repos.filter((r) => r.path !== repo.path)]
       localStorage.setItem(REPOS_KEY, JSON.stringify(repos))
-      return { repos, activePath: repo.path, selectedSha: null }
+      return { repos, activePath: repo.path, selectedSha: null, selectedFile: null }
     }),
 
-  setActive: (path) => set({ activePath: path, selectedSha: null }),
+  setActive: (path) => set({ activePath: path, selectedSha: null, selectedFile: null }),
   selectCommit: (sha) => set({ selectedSha: sha }),
+  setViewMode: (mode) => set({ viewMode: mode }),
+  selectFile: (file) => set({ selectedFile: file }),
 
   setTheme: (theme) => {
     localStorage.setItem(THEME_KEY, theme)

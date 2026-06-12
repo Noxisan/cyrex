@@ -4,7 +4,7 @@
  * thrown error so components render real error states (never faked success).
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { EngineResult, LogOptions } from '@shared/types'
 
 function unwrap<T>(res: EngineResult<T>): T {
@@ -59,4 +59,48 @@ export function useCommitDiff(path: string | null, sha: string | null) {
     staleTime: 5 * 60_000,
     queryFn: async () => unwrap(await window.cyrex.commitDiff(path!, sha!))
   })
+}
+
+export function useWorkingDiff(
+  path: string | null,
+  file: string | null,
+  staged: boolean,
+  untracked: boolean
+) {
+  return useQuery({
+    queryKey: ['workingDiff', path, file, staged, untracked],
+    enabled: !!path && !!file,
+    queryFn: async () => unwrap(await window.cyrex.workingDiff(path!, file!, staged, untracked))
+  })
+}
+
+/** Invalidate everything a working-tree mutation can affect. */
+function useRepoMutation<TVars>(fn: (vars: TVars) => Promise<EngineResult<unknown>>) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (vars: TVars) => unwrap(await fn(vars)),
+    onSuccess: () => {
+      for (const key of ['status', 'workingDiff', 'log', 'branches']) {
+        void qc.invalidateQueries({ queryKey: [key] })
+      }
+    }
+  })
+}
+
+export function useStage(path: string) {
+  return useRepoMutation((file: string) => window.cyrex.stage(path, file))
+}
+
+export function useUnstage(path: string) {
+  return useRepoMutation((file: string) => window.cyrex.unstage(path, file))
+}
+
+export function useDiscard(path: string) {
+  return useRepoMutation((v: { file: string; untracked: boolean }) =>
+    window.cyrex.discard(path, v.file, v.untracked)
+  )
+}
+
+export function useCommit(path: string) {
+  return useRepoMutation((message: string) => window.cyrex.commit(path, message))
 }

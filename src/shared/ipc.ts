@@ -28,6 +28,13 @@ export const IpcChannels = {
   RepoTags: 'repo:tags',
   /** Structured diff for a single commit (against its first parent). */
   RepoCommitDiff: 'repo:commitDiff',
+  /** Diff for a single working-tree file (staged or unstaged). */
+  RepoWorkingDiff: 'repo:workingDiff',
+  RepoStage: 'repo:stage',
+  RepoUnstage: 'repo:unstage',
+  /** DESTRUCTIVE — discard a file's working changes (must be confirmed). */
+  RepoDiscard: 'repo:discard',
+  RepoCommit: 'repo:commit',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -72,6 +79,26 @@ export interface IpcApi {
   [IpcChannels.RepoCommitDiff]: {
     request: { path: string; sha: string }
     response: EngineResult<CommitDiff>
+  }
+  [IpcChannels.RepoWorkingDiff]: {
+    request: { path: string; file: string; staged: boolean; untracked: boolean }
+    response: EngineResult<CommitDiff>
+  }
+  [IpcChannels.RepoStage]: {
+    request: { path: string; file: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoUnstage]: {
+    request: { path: string; file: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoDiscard]: {
+    request: { path: string; file: string; untracked: boolean }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoCommit]: {
+    request: { path: string; message: string }
+    response: EngineResult<{ sha: string }>
   }
   [IpcChannels.EngineInfo]: {
     request: void

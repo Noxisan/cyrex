@@ -33,6 +33,41 @@ export const commitDiffSchema = z.object({
     .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 0x20), 'invalid ref')
 })
 
+// A repo-relative file path. Reject absolute paths and parent-dir traversal so
+// an operation can never escape the repository root.
+const relFile = z
+  .string()
+  .min(1)
+  .max(4096)
+  .refine((p) => !p.startsWith('/') && !/^[a-zA-Z]:[\\/]/.test(p), 'must be repo-relative')
+  .refine((p) => !p.split(/[\\/]/).includes('..'), 'path traversal not allowed')
+
+export const fileOpSchema = z.object({
+  path: z.string().min(1),
+  file: relFile
+})
+
+export const workingDiffSchema = z.object({
+  path: z.string().min(1),
+  file: relFile,
+  staged: z.boolean(),
+  untracked: z.boolean()
+})
+
+export const discardSchema = z.object({
+  path: z.string().min(1),
+  file: relFile,
+  untracked: z.boolean()
+})
+
+export const commitSchema = z.object({
+  path: z.string().min(1),
+  message: z.string().min(1).max(20_000)
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>
+export type FileOpRequest = z.infer<typeof fileOpSchema>
+export type WorkingDiffRequest = z.infer<typeof workingDiffSchema>
+export type CommitRequest = z.infer<typeof commitSchema>

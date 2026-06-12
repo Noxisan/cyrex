@@ -25,7 +25,14 @@ export const cyrexApi = {
   branches: (path: string) => invoke(IpcChannels.RepoBranches, { path }),
   tags: (path: string) => invoke(IpcChannels.RepoTags, { path }),
   commitDiff: (path: string, sha: string) =>
-    invoke(IpcChannels.RepoCommitDiff, { path, sha })
+    invoke(IpcChannels.RepoCommitDiff, { path, sha }),
+  workingDiff: (path: string, file: string, staged: boolean, untracked: boolean) =>
+    invoke(IpcChannels.RepoWorkingDiff, { path, file, staged, untracked }),
+  stage: (path: string, file: string) => invoke(IpcChannels.RepoStage, { path, file }),
+  unstage: (path: string, file: string) => invoke(IpcChannels.RepoUnstage, { path, file }),
+  discard: (path: string, file: string, untracked: boolean) =>
+    invoke(IpcChannels.RepoDiscard, { path, file, untracked }),
+  commit: (path: string, message: string) => invoke(IpcChannels.RepoCommit, { path, message })
 }
 
 export type CyrexApi = typeof cyrexApi

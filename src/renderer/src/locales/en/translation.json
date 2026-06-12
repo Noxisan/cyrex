@@ -46,6 +46,19 @@
     "loading": "Loading diff…",
     "empty": "This commit has no file changes."
   },
+  "tabs": {
+    "history": "History",
+    "changes": "Changes"
+  },
+  "changes": {
+    "stageAll": "Stage all",
+    "unstageAll": "Unstage all",
+    "selectPrompt": "Select a file to review its changes.",
+    "commitPlaceholder": "Commit message (Ctrl+Enter to commit)",
+    "committing": "Committing…",
+    "commit_one": "Commit {{count}} file to {{branch}}",
+    "commit_other": "Commit {{count}} files to {{branch}}"
+  },
   "status": {
     "clean": "Working tree clean",
     "staged": "Staged",

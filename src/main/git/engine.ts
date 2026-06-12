@@ -7,11 +7,13 @@
  * dropped in behind the same signatures later without touching the renderer.
  */
 
-import { basename } from 'node:path'
+import { basename, join } from 'node:path'
+import { readFile } from 'node:fs/promises'
 import type {
   Branch,
   Commit,
   CommitDiff,
+  DiffFile,
   FileStatus,
   FileStatusCode,
   LogOptions,
@@ -269,6 +271,101 @@ export async function commitDiff(repoPath: string, sha: string): Promise<CommitD
   }
 
   return { sha, files: parseUnifiedDiff(patch) }
+}
+
+// --- working tree: diff, staging, commit -----------------------------------
+
+/** Synthesize an all-additions diff for an untracked file (git diff omits it). */
+async function untrackedFileDiff(repoPath: string, file: string): Promise<DiffFile> {
+  const buf = await readFile(join(repoPath, file))
+  if (buf.includes(0)) {
+    return { path: file, status: 'added', binary: true, additions: 0, deletions: 0, hunks: [] }
+  }
+  const text = buf.toString('utf8')
+  const lines = text.length === 0 ? [] : text.replace(/\n$/, '').split('\n')
+  const diffLines = lines.map((content, i) => ({
+    kind: 'add' as const,
+    content,
+    newNumber: i + 1
+  }))
+  return {
+    path: file,
+    status: 'added',
+    binary: false,
+    additions: lines.length,
+    deletions: 0,
+    hunks:
+      lines.length === 0
+        ? []
+        : [
+            {
+              header: `@@ -0,0 +1,${lines.length} @@`,
+              oldStart: 0,
+              oldLines: 0,
+              newStart: 1,
+              newLines: lines.length,
+              lines: diffLines
+            }
+          ]
+  }
+}
+
+export interface WorkingDiffOptions {
+  file: string
+  /** true = staged (index vs HEAD), false = unstaged (working tree vs index). */
+  staged: boolean
+  untracked: boolean
+}
+
+/** Diff for a single working-tree file, staged or unstaged. */
+export async function workingDiff(
+  repoPath: string,
+  opts: WorkingDiffOptions
+): Promise<CommitDiff> {
+  if (opts.untracked && !opts.staged) {
+    return { sha: 'WORKTREE', files: [await untrackedFileDiff(repoPath, opts.file)] }
+  }
+  const args = ['diff', '--no-color', '--patch', '-U3', '-M', '--find-renames']
+  if (opts.staged) args.push('--cached')
+  args.push('--', opts.file)
+  const { stdout } = await runGit(args, { cwd: repoPath })
+  return { sha: opts.staged ? 'INDEX' : 'WORKTREE', files: parseUnifiedDiff(stdout) }
+}
+
+/** Stage a file (handles modified, deleted, and untracked via `git add`). */
+export async function stage(repoPath: string, file: string): Promise<void> {
+  await runGit(['add', '--', file], { cwd: repoPath })
+}
+
+/** Unstage a file, returning it to the working tree unchanged. */
+export async function unstage(repoPath: string, file: string): Promise<void> {
+  await runGit(['restore', '--staged', '--', file], { cwd: repoPath })
+}
+
+/**
+ * DESTRUCTIVE: discard a file's working-tree changes. Untracked files are
+ * removed; tracked files are restored from the index. Callers must confirm with
+ * the user first (CLAUDE.md §3 safety rules).
+ */
+export async function discard(repoPath: string, file: string, untracked: boolean): Promise<void> {
+  if (untracked) {
+    await runGit(['clean', '-f', '--', file], { cwd: repoPath })
+  } else {
+    await runGit(['restore', '--worktree', '--', file], { cwd: repoPath })
+  }
+}
+
+export interface CommitResult {
+  sha: string
+}
+
+/** Create a commit from the staged index. Returns the new HEAD sha. */
+export async function commit(repoPath: string, message: string): Promise<CommitResult> {
+  const trimmed = message.trim()
+  if (trimmed.length === 0) throw new Error('Commit message must not be empty.')
+  await runGit(['commit', '-m', trimmed], { cwd: repoPath })
+  const { stdout } = await runGit(['rev-parse', 'HEAD'], { cwd: repoPath })
+  return { sha: stdout.trim() }
 }
 
 export async function tags(repoPath: string): Promise<Tag[]> {

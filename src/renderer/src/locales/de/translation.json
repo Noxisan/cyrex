@@ -46,6 +46,19 @@
     "loading": "Diff wird geladen…",
     "empty": "Dieser Commit hat keine Dateiänderungen."
   },
+  "tabs": {
+    "history": "Verlauf",
+    "changes": "Änderungen"
+  },
+  "changes": {
+    "stageAll": "Alle bereitstellen",
+    "unstageAll": "Alle entfernen",
+    "selectPrompt": "Wähle eine Datei, um ihre Änderungen zu sehen.",
+    "commitPlaceholder": "Commit-Nachricht (Strg+Enter zum Committen)",
+    "committing": "Wird committet…",
+    "commit_one": "{{count}} Datei nach {{branch}} committen",
+    "commit_other": "{{count}} Dateien nach {{branch}} committen"
+  },
   "status": {
     "clean": "Arbeitsverzeichnis sauber",
     "staged": "Bereitgestellt",

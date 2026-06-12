@@ -12,7 +12,15 @@ import { IpcChannels } from '@shared/ipc'
 import type { EngineResult, RepoRef } from '@shared/types'
 import * as engine from '../git/engine'
 import { scrubSecrets } from '../git/cli'
-import { commitDiffSchema, logSchema, repoPathSchema } from './schemas'
+import {
+  commitDiffSchema,
+  commitSchema,
+  discardSchema,
+  fileOpSchema,
+  logSchema,
+  repoPathSchema,
+  workingDiffSchema
+} from './schemas'
 
 /** Wrap an async handler so it always returns EngineResult and never throws. */
 function wrap<TReq, TRes>(
@@ -78,5 +86,45 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     IpcChannels.RepoCommitDiff,
     wrap(commitDiffSchema, (req) => engine.commitDiff(req.path, req.sha))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoWorkingDiff,
+    wrap(workingDiffSchema, (req) =>
+      engine.workingDiff(req.path, {
+        file: req.file,
+        staged: req.staged,
+        untracked: req.untracked
+      })
+    )
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoStage,
+    wrap(fileOpSchema, async (req) => {
+      await engine.stage(req.path, req.file)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoUnstage,
+    wrap(fileOpSchema, async (req) => {
+      await engine.unstage(req.path, req.file)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoDiscard,
+    wrap(discardSchema, async (req) => {
+      await engine.discard(req.path, req.file, req.untracked)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCommit,
+    wrap(commitSchema, (req) => engine.commit(req.path, req.message))
   )
 }
