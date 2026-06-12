@@ -25,6 +25,20 @@
     "stashes": "Stashes",
     "empty": "Keine"
   },
+  "common": {
+    "cancel": "Abbrechen",
+    "create": "Erstellen"
+  },
+  "branch": {
+    "new": "Neuer Branch",
+    "namePlaceholder": "branch-name",
+    "checkout": "Auschecken",
+    "checkoutTracking": "Als lokalen Branch auschecken",
+    "rename": "Umbenennen",
+    "delete": "Branch löschen",
+    "forceDelete": "Löschen erzwingen",
+    "forceDeleteMessage": "\"{{name}}\" zwangsweise löschen? Commits, die nur auf diesem Branch liegen, werden unerreichbar."
+  },
   "graph": {
     "title": "Commit-Graph",
     "empty": "Keine Commits vorhanden.",

@@ -39,7 +39,16 @@ export const cyrexApi = {
   ) => invoke(IpcChannels.RepoApplyPartial, { path, file, hunkIndex, lines, op }),
   discard: (path: string, file: string, untracked: boolean) =>
     invoke(IpcChannels.RepoDiscard, { path, file, untracked }),
-  commit: (path: string, message: string) => invoke(IpcChannels.RepoCommit, { path, message })
+  commit: (path: string, message: string) => invoke(IpcChannels.RepoCommit, { path, message }),
+  checkout: (path: string, ref: string) => invoke(IpcChannels.RepoCheckout, { path, ref }),
+  checkoutRemote: (path: string, remoteRef: string) =>
+    invoke(IpcChannels.RepoCheckoutRemote, { path, remoteRef }),
+  createBranch: (path: string, name: string, startPoint?: string, checkout?: boolean) =>
+    invoke(IpcChannels.RepoCreateBranch, { path, name, startPoint, checkout }),
+  renameBranch: (path: string, oldName: string, newName: string) =>
+    invoke(IpcChannels.RepoRenameBranch, { path, oldName, newName }),
+  deleteBranch: (path: string, name: string, force?: boolean) =>
+    invoke(IpcChannels.RepoDeleteBranch, { path, name, force })
 }
 
 export type CyrexApi = typeof cyrexApi

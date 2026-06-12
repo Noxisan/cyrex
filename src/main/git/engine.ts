@@ -409,6 +409,67 @@ export async function applyPartial(repoPath: string, opts: PartialOptions): Prom
   await runGit(args, { cwd: repoPath, input: patch })
 }
 
+// --- branch operations -----------------------------------------------------
+
+/** Switch the working tree to a branch, tag, or commit. */
+export async function checkout(repoPath: string, ref: string): Promise<void> {
+  await runGit(['checkout', ref], { cwd: repoPath })
+}
+
+/**
+ * Check out a remote-tracking branch by creating a local branch that tracks it
+ * (e.g. "origin/feature/x" -> local "feature/x"). Falls back to switching to an
+ * existing local branch of the same name.
+ */
+export async function checkoutRemote(repoPath: string, remoteRef: string): Promise<void> {
+  const local = remoteRef.replace(/^[^/]+\//, '')
+  try {
+    await runGit(['checkout', '-b', local, '--track', remoteRef], { cwd: repoPath })
+  } catch (err) {
+    // Local branch already exists — just switch to it (it likely already tracks).
+    if (err instanceof Error && /already exists/i.test(err.message)) {
+      await runGit(['checkout', local], { cwd: repoPath })
+      return
+    }
+    throw err
+  }
+}
+
+export interface CreateBranchOptions {
+  startPoint?: string
+  checkout?: boolean
+}
+
+export async function createBranch(
+  repoPath: string,
+  name: string,
+  opts: CreateBranchOptions = {}
+): Promise<void> {
+  const start = opts.startPoint ? [opts.startPoint] : []
+  if (opts.checkout) await runGit(['checkout', '-b', name, ...start], { cwd: repoPath })
+  else await runGit(['branch', name, ...start], { cwd: repoPath })
+}
+
+export async function renameBranch(
+  repoPath: string,
+  oldName: string,
+  newName: string
+): Promise<void> {
+  await runGit(['branch', '-m', oldName, newName], { cwd: repoPath })
+}
+
+/**
+ * Delete a local branch. `-d` refuses to drop unmerged work; `force` uses `-D`
+ * and is DESTRUCTIVE (unmerged commits become unreachable) — callers confirm.
+ */
+export async function deleteBranch(
+  repoPath: string,
+  name: string,
+  force = false
+): Promise<void> {
+  await runGit(['branch', force ? '-D' : '-d', name], { cwd: repoPath })
+}
+
 export async function tags(repoPath: string): Promise<Tag[]> {
   const fmt = ['%(refname:short)', '%(objectname)', '%(*objectname)', '%(objecttype)'].join(US)
   const { stdout } = await runGit(['for-each-ref', `--format=${fmt}`, 'refs/tags'], {

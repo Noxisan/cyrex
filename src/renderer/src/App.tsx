@@ -7,6 +7,7 @@ import { CommitDetail } from './components/CommitDetail'
 import { ChangesView } from './components/ChangesView'
 import { StatusBar } from './components/StatusBar'
 import { WelcomeScreen } from './components/WelcomeScreen'
+import { Toasts } from './components/Toasts'
 
 export function App(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
@@ -38,6 +39,7 @@ export function App(): React.JSX.Element {
         )}
       </div>
       <StatusBar />
+      <Toasts />
     </div>
   )
 }

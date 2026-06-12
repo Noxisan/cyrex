@@ -6,6 +6,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { EngineResult, LogOptions } from '@shared/types'
+import { useToastStore } from '../store/toastStore'
 
 function unwrap<T>(res: EngineResult<T>): T {
   if (!res.ok) throw new Error(res.error)
@@ -74,16 +75,21 @@ export function useWorkingDiff(
   })
 }
 
-/** Invalidate everything a working-tree mutation can affect. */
+/**
+ * Invalidate everything a repo mutation can affect, and surface any Git error
+ * as a toast so operations never fail silently.
+ */
 function useRepoMutation<TVars>(fn: (vars: TVars) => Promise<EngineResult<unknown>>) {
   const qc = useQueryClient()
+  const pushToast = useToastStore((s) => s.push)
   return useMutation({
     mutationFn: async (vars: TVars) => unwrap(await fn(vars)),
     onSuccess: () => {
-      for (const key of ['status', 'workingDiff', 'log', 'branches']) {
+      for (const key of ['status', 'workingDiff', 'log', 'branches', 'tags']) {
         void qc.invalidateQueries({ queryKey: [key] })
       }
-    }
+    },
+    onError: (err) => pushToast((err as Error).message, 'error')
   })
 }
 
@@ -109,6 +115,32 @@ export function useApplyPartial(path: string) {
       op: 'stage' | 'unstage' | 'discard'
       lines?: number[]
     }) => window.cyrex.applyPartial(path, v.file, v.hunkIndex, v.op, v.lines)
+  )
+}
+
+export function useCheckout(path: string) {
+  return useRepoMutation((ref: string) => window.cyrex.checkout(path, ref))
+}
+
+export function useCheckoutRemote(path: string) {
+  return useRepoMutation((remoteRef: string) => window.cyrex.checkoutRemote(path, remoteRef))
+}
+
+export function useCreateBranch(path: string) {
+  return useRepoMutation((v: { name: string; startPoint?: string; checkout?: boolean }) =>
+    window.cyrex.createBranch(path, v.name, v.startPoint, v.checkout)
+  )
+}
+
+export function useRenameBranch(path: string) {
+  return useRepoMutation((v: { oldName: string; newName: string }) =>
+    window.cyrex.renameBranch(path, v.oldName, v.newName)
+  )
+}
+
+export function useDeleteBranch(path: string) {
+  return useRepoMutation((v: { name: string; force?: boolean }) =>
+    window.cyrex.deleteBranch(path, v.name, v.force)
   )
 }
 
