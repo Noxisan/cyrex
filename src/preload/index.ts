@@ -23,7 +23,9 @@ export const cyrexApi = {
   log: (path: string, options?: Req<typeof IpcChannels.RepoLog>['options']) =>
     invoke(IpcChannels.RepoLog, { path, options }),
   branches: (path: string) => invoke(IpcChannels.RepoBranches, { path }),
-  tags: (path: string) => invoke(IpcChannels.RepoTags, { path })
+  tags: (path: string) => invoke(IpcChannels.RepoTags, { path }),
+  commitDiff: (path: string, sha: string) =>
+    invoke(IpcChannels.RepoCommitDiff, { path, sha })
 }
 
 export type CyrexApi = typeof cyrexApi

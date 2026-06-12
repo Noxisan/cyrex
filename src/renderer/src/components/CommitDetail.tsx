@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { GitCommitHorizontal } from 'lucide-react'
 import { useLog } from '../hooks/useRepo'
 import { useRepoStore } from '../store/repoStore'
+import { DiffView } from './DiffView'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }): React.JSX.Element {
   return (
@@ -36,7 +37,7 @@ export function CommitDetail({ repoPath }: { repoPath: string }): React.JSX.Elem
         {t('detail.title')}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4">
+      <div className="max-h-[45%] shrink-0 overflow-auto p-4">
         <p className="mb-1 text-sm font-medium text-fg">{commit.summary}</p>
         {commit.body && (
           <pre className="mb-4 whitespace-pre-wrap font-sans text-xs text-fg-muted">
@@ -63,17 +64,9 @@ export function CommitDetail({ repoPath }: { repoPath: string }): React.JSX.Elem
             )}
           </Field>
         </div>
-
-        <div className="mt-4 border-t border-border pt-3">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-fg-muted">
-            {t('detail.changedFiles')}
-          </p>
-          {/* Per-commit file diff arrives with the diff engine op (next milestone). */}
-          <p className="text-xs text-fg-subtle">
-            Diff view is wired next — the engine&apos;s <code>diff</code> op lands in the next step.
-          </p>
-        </div>
       </div>
+
+      <DiffView repoPath={repoPath} sha={commit.sha} />
     </div>
   )
 }

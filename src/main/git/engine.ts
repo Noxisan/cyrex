@@ -11,6 +11,7 @@ import { basename } from 'node:path'
 import type {
   Branch,
   Commit,
+  CommitDiff,
   FileStatus,
   FileStatusCode,
   LogOptions,
@@ -19,6 +20,7 @@ import type {
   Tag
 } from '@shared/types'
 import { gitVersion, isGitRepo, runGit } from './cli'
+import { parseUnifiedDiff } from './diff'
 
 const US = '\x1f' // unit separator — between fields
 const RS = '\x1e' // record separator — between records
@@ -234,6 +236,39 @@ export async function branches(repoPath: string): Promise<Branch[]> {
     })
   }
   return list
+}
+
+// --- diff ------------------------------------------------------------------
+
+/**
+ * Structured diff for a single commit. Diffs against the FIRST parent (so merge
+ * commits produce a readable two-way diff rather than git's combined format);
+ * the root commit is shown in full. Rename detection (-M) is on.
+ */
+export async function commitDiff(repoPath: string, sha: string): Promise<CommitDiff> {
+  // Resolve parents without trusting caller-supplied data.
+  const { stdout: rev } = await runGit(['rev-list', '--parents', '-n', '1', sha], {
+    cwd: repoPath
+  })
+  const parents = rev.trim().split(' ').slice(1)
+
+  const common = ['--no-color', '--patch', '-U3', '-M', '--find-renames']
+  let patch: string
+  if (parents.length === 0) {
+    // Root commit: show the whole thing as additions.
+    const { stdout } = await runGit(['show', '--format=', ...common, '--root', sha], {
+      cwd: repoPath
+    })
+    patch = stdout
+  } else {
+    // Diff first parent -> commit. Clean two-way diff for merges too.
+    const { stdout } = await runGit(['diff', ...common, `${parents[0]}`, sha], {
+      cwd: repoPath
+    })
+    patch = stdout
+  }
+
+  return { sha, files: parseUnifiedDiff(patch) }
 }
 
 export async function tags(repoPath: string): Promise<Tag[]> {

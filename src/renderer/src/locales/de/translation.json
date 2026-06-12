@@ -38,6 +38,14 @@
     "parents": "Eltern",
     "changedFiles": "Geänderte Dateien"
   },
+  "diff": {
+    "inline": "Inline",
+    "split": "Nebeneinander",
+    "binary": "Binärdatei — kein Text-Diff.",
+    "noChanges": "Keine Textänderungen.",
+    "loading": "Diff wird geladen…",
+    "empty": "Dieser Commit hat keine Dateiänderungen."
+  },
   "status": {
     "clean": "Arbeitsverzeichnis sauber",
     "staged": "Bereitgestellt",

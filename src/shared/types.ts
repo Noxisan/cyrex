@@ -98,6 +98,46 @@ export interface LogOptions {
   ref?: string
 }
 
+// --- diffs ------------------------------------------------------------------
+
+export type DiffLineKind = 'context' | 'add' | 'remove'
+
+export interface DiffLine {
+  kind: DiffLineKind
+  /** Line content without the leading +/-/space marker. */
+  content: string
+  /** 1-based line number on the old side (undefined for added lines). */
+  oldNumber?: number
+  /** 1-based line number on the new side (undefined for removed lines). */
+  newNumber?: number
+}
+
+export interface DiffHunk {
+  /** The raw @@ ... @@ header. */
+  header: string
+  oldStart: number
+  oldLines: number
+  newStart: number
+  newLines: number
+  lines: DiffLine[]
+}
+
+export interface DiffFile {
+  path: string
+  /** Original path for renames/copies. */
+  oldPath?: string
+  status: FileStatusCode
+  binary: boolean
+  additions: number
+  deletions: number
+  hunks: DiffHunk[]
+}
+
+export interface CommitDiff {
+  sha: string
+  files: DiffFile[]
+}
+
 /**
  * Standard envelope for every engine result so the renderer can render real
  * error states instead of silently faking success (CLAUDE.md core principle:

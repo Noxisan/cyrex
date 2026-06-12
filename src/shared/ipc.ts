@@ -9,6 +9,7 @@
 import type {
   Branch,
   Commit,
+  CommitDiff,
   EngineResult,
   LogOptions,
   RepoRef,
@@ -25,6 +26,8 @@ export const IpcChannels = {
   RepoLog: 'repo:log',
   RepoBranches: 'repo:branches',
   RepoTags: 'repo:tags',
+  /** Structured diff for a single commit (against its first parent). */
+  RepoCommitDiff: 'repo:commitDiff',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -65,6 +68,10 @@ export interface IpcApi {
   [IpcChannels.RepoTags]: {
     request: { path: string }
     response: EngineResult<Tag[]>
+  }
+  [IpcChannels.RepoCommitDiff]: {
+    request: { path: string; sha: string }
+    response: EngineResult<CommitDiff>
   }
   [IpcChannels.EngineInfo]: {
     request: void

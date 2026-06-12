@@ -12,7 +12,7 @@ import { IpcChannels } from '@shared/ipc'
 import type { EngineResult, RepoRef } from '@shared/types'
 import * as engine from '../git/engine'
 import { scrubSecrets } from '../git/cli'
-import { logSchema, repoPathSchema } from './schemas'
+import { commitDiffSchema, logSchema, repoPathSchema } from './schemas'
 
 /** Wrap an async handler so it always returns EngineResult and never throws. */
 function wrap<TReq, TRes>(
@@ -73,5 +73,10 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     IpcChannels.RepoTags,
     wrap(repoPathSchema, (req) => engine.tags(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCommitDiff,
+    wrap(commitDiffSchema, (req) => engine.commitDiff(req.path, req.sha))
   )
 }

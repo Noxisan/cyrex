@@ -38,6 +38,14 @@
     "parents": "Parents",
     "changedFiles": "Changed Files"
   },
+  "diff": {
+    "inline": "Inline",
+    "split": "Side by side",
+    "binary": "Binary file — no text diff.",
+    "noChanges": "No textual changes.",
+    "loading": "Loading diff…",
+    "empty": "This commit has no file changes."
+  },
   "status": {
     "clean": "Working tree clean",
     "staged": "Staged",

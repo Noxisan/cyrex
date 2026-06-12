@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="readme_logo.png" alt="Cyrex — Visual Git Client" width="300" />
+</p>
+
 # Cyrex
 
 A calm, cross-platform visual Git client for Windows, Linux, and macOS. Cyrex turns everyday Git work — commit, branch, merge, rebase, stash, remotes — into a fast, readable, graphical experience without hiding what Git is actually doing.
@@ -39,7 +43,8 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Commit graph (lanes, refs, tags) | Done |
 | Status (staged / unstaged / untracked / conflicts) | Done |
 | Branch and tag listing | Done |
-| Per-commit diff view | In progress |
+| Per-commit diff view (inline + side-by-side) | Done |
+| Syntax highlighting in diffs | Planned |
 | Stage / unstage by hunk and line | Planned |
 | Commit, amend, sign | Planned |
 | Merge / rebase / cherry-pick / revert | Planned |

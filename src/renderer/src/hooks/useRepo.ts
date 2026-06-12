@@ -50,3 +50,13 @@ export function useTags(path: string | null) {
     queryFn: async () => unwrap(await window.cyrex.tags(path!))
   })
 }
+
+export function useCommitDiff(path: string | null, sha: string | null) {
+  return useQuery({
+    queryKey: ['commitDiff', path, sha],
+    enabled: !!path && !!sha,
+    // Diffs are immutable for a given commit — cache them aggressively.
+    staleTime: 5 * 60_000,
+    queryFn: async () => unwrap(await window.cyrex.commitDiff(path!, sha!))
+  })
+}
