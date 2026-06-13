@@ -56,7 +56,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Interactive rebase UI | Planned |
 | Stash save / apply / pop / drop | Done |
 | Fetch / pull / push, upstream tracking | Done |
-| Conflict detection (resolution UI) | Done (detection) |
+| Conflict detection and resolution UI | Done |
 | Blame and per-file history | Done |
 | Commit search (message / author / sha) | Done |
 | Undo / reflog surface | Done |
