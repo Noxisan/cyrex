@@ -12,6 +12,7 @@ import { OperationBanner } from './components/OperationBanner'
 import { FileInspector } from './components/FileInspector'
 import { ReflogPanel } from './components/ReflogPanel'
 import { RebaseDialog } from './components/RebaseDialog'
+import { TerminalPanel } from './components/TerminalPanel'
 
 export function App(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
@@ -38,6 +39,7 @@ export function App(): React.JSX.Element {
             ) : (
               <ChangesView repoPath={activePath} />
             )}
+            <TerminalPanel />
           </main>
         ) : (
           <WelcomeScreen />

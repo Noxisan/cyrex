@@ -32,6 +32,8 @@ interface RepoState {
   reflogOpen: boolean
   /** Base commit sha for the interactive-rebase planner; null when closed. */
   rebaseBase: string | null
+  /** Whether the embedded terminal pane is shown. */
+  terminalOpen: boolean
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
@@ -46,6 +48,7 @@ interface RepoState {
   closeReflog: () => void
   openRebase: (base: string) => void
   closeRebase: () => void
+  toggleTerminal: () => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -83,6 +86,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   searchQuery: '',
   reflogOpen: false,
   rebaseBase: null,
+  terminalOpen: false,
   theme: initialTheme(),
 
   addRepo: (repo) =>
@@ -112,6 +116,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   closeReflog: () => set({ reflogOpen: false }),
   openRebase: (base) => set({ rebaseBase: base }),
   closeRebase: () => set({ rebaseBase: null }),
+  toggleTerminal: () => set((s) => ({ terminalOpen: !s.terminalOpen })),
 
   setTheme: (theme) => {
     localStorage.setItem(THEME_KEY, theme)

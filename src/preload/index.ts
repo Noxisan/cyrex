@@ -5,9 +5,9 @@
  */
 
 import { contextBridge, ipcRenderer } from 'electron'
-import { IpcChannels } from '@shared/ipc'
+import { IpcChannels, TerminalChannels } from '@shared/ipc'
 import type { IpcApi } from '@shared/ipc'
-import type { RebaseTodoItem } from '@shared/types'
+import type { RebaseTodoItem, TerminalData, TerminalExit, TerminalSession } from '@shared/types'
 
 type Req<C extends keyof IpcApi> = IpcApi[C]['request']
 type Res<C extends keyof IpcApi> = IpcApi[C]['response']
@@ -83,7 +83,31 @@ export const cyrexApi = {
   search: (path: string, query: string) => invoke(IpcChannels.RepoSearch, { path, query }),
   reflog: (path: string) => invoke(IpcChannels.RepoReflog, { path }),
   resetTo: (path: string, sha: string, mode: 'soft' | 'mixed' | 'hard') =>
-    invoke(IpcChannels.RepoReset, { path, sha, mode })
+    invoke(IpcChannels.RepoReset, { path, sha, mode }),
+
+  /**
+   * Embedded terminal. Data/Exit are main→renderer streams, so we expose
+   * subscribe helpers that wrap ipcRenderer.on (never ipcRenderer itself) and
+   * return an unsubscribe function.
+   */
+  terminal: {
+    create: (cwd: string): Promise<TerminalSession> =>
+      ipcRenderer.invoke(TerminalChannels.Create, { cwd }),
+    run: (id: string, command: string): Promise<void> =>
+      ipcRenderer.invoke(TerminalChannels.Run, { id, command }),
+    signal: (id: string): Promise<void> => ipcRenderer.invoke(TerminalChannels.Signal, { id }),
+    dispose: (id: string): Promise<void> => ipcRenderer.invoke(TerminalChannels.Dispose, { id }),
+    onData: (cb: (d: TerminalData) => void): (() => void) => {
+      const listener = (_e: unknown, payload: TerminalData): void => cb(payload)
+      ipcRenderer.on(TerminalChannels.Data, listener)
+      return () => ipcRenderer.removeListener(TerminalChannels.Data, listener)
+    },
+    onExit: (cb: (e: TerminalExit) => void): (() => void) => {
+      const listener = (_e: unknown, payload: TerminalExit): void => cb(payload)
+      ipcRenderer.on(TerminalChannels.Exit, listener)
+      return () => ipcRenderer.removeListener(TerminalChannels.Exit, listener)
+    }
+  }
 }
 
 export type CyrexApi = typeof cyrexApi

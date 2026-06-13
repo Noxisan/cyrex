@@ -199,6 +199,27 @@ export interface ReflogEntry {
   author: string
 }
 
+// --- embedded terminal ------------------------------------------------------
+
+/** A shell command-runner session, scoped to a starting directory. */
+export interface TerminalSession {
+  id: string
+  cwd: string
+}
+
+/** A chunk of output streamed from a running command. */
+export interface TerminalData {
+  id: string
+  chunk: string
+}
+
+/** Sent when a command finishes; carries the session's (possibly updated) cwd. */
+export interface TerminalExit {
+  id: string
+  code: number
+  cwd: string
+}
+
 /** Context the commit box needs for amend and signing. */
 export interface CommitContext {
   /** Whether HEAD exists (false on an unborn branch — nothing to amend). */

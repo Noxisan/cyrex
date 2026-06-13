@@ -11,7 +11,13 @@
     "stash": "Stash",
     "search": "Search",
     "undo": "Undo",
+    "terminal": "Terminal",
     "settings": "Settings"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "hint": "runs in the active repository",
+    "intro": "Cyrex terminal — line-based command runner (no interactive TTY)."
   },
   "welcome": {
     "title": "No repository open",

@@ -6,6 +6,7 @@ import {
   FolderOpen,
   RefreshCw,
   Settings,
+  TerminalSquare,
   Undo2
 } from 'lucide-react'
 import { useState } from 'react'
@@ -57,6 +58,7 @@ export function TopBar(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
   const addRepo = useRepoStore((s) => s.addRepo)
   const openReflog = useRepoStore((s) => s.openReflog)
+  const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
   const stashSave = useStashSave(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
@@ -141,6 +143,12 @@ export function TopBar(): React.JSX.Element {
         label={t('actions.undo')}
         icon={Undo2}
         onClick={openReflog}
+        disabled={!hasRepo}
+      />
+      <ToolButton
+        label={t('actions.terminal')}
+        icon={TerminalSquare}
+        onClick={toggleTerminal}
         disabled={!hasRepo}
       />
 

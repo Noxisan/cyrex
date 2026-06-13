@@ -3,6 +3,7 @@ import { app, BrowserWindow, Menu, nativeImage, session, shell, Tray } from 'ele
 import appIcon from '../../build/icon.png?asset'
 import trayIcon from '../../build/tray.png?asset'
 import { registerIpcHandlers } from './ipc'
+import { registerTerminalHandlers } from './terminal'
 
 const isDev = !app.isPackaged
 
@@ -150,6 +151,7 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((_wc, _perm, deny) => deny(false))
 
   registerIpcHandlers()
+  registerTerminalHandlers()
   createWindow()
   createTray()
 
