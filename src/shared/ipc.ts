@@ -11,6 +11,7 @@ import type {
   Branch,
   Commit,
   CommitDiff,
+  ConflictFile,
   EngineResult,
   LogOptions,
   ReflogEntry,
@@ -65,6 +66,11 @@ export const IpcChannels = {
   RepoRevert: 'repo:revert',
   RepoContinueOp: 'repo:continueOperation',
   RepoAbortOp: 'repo:abortOperation',
+  /** Conflict resolution: read a conflicted file's sides, write the resolution. */
+  RepoReadConflict: 'repo:readConflict',
+  RepoResolveConflict: 'repo:resolveConflict',
+  /** Resolve a conflict by taking one whole side (works for binary too). */
+  RepoResolveSide: 'repo:resolveSide',
   /** Per-file inspection. */
   RepoFileHistory: 'repo:fileHistory',
   RepoBlame: 'repo:blame',
@@ -219,6 +225,18 @@ export interface IpcApi {
   }
   [IpcChannels.RepoAbortOp]: {
     request: { path: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoReadConflict]: {
+    request: { path: string; file: string }
+    response: EngineResult<ConflictFile>
+  }
+  [IpcChannels.RepoResolveConflict]: {
+    request: { path: string; file: string; content: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoResolveSide]: {
+    request: { path: string; file: string; side: 'ours' | 'theirs' }
     response: EngineResult<null>
   }
   [IpcChannels.RepoFileHistory]: {

@@ -64,6 +64,12 @@ export const cyrexApi = {
   revert: (path: string, sha: string) => invoke(IpcChannels.RepoRevert, { path, sha }),
   continueOperation: (path: string) => invoke(IpcChannels.RepoContinueOp, { path }),
   abortOperation: (path: string) => invoke(IpcChannels.RepoAbortOp, { path }),
+  readConflict: (path: string, file: string) =>
+    invoke(IpcChannels.RepoReadConflict, { path, file }),
+  resolveConflict: (path: string, file: string, content: string) =>
+    invoke(IpcChannels.RepoResolveConflict, { path, file, content }),
+  resolveSide: (path: string, file: string, side: 'ours' | 'theirs') =>
+    invoke(IpcChannels.RepoResolveSide, { path, file, side }),
   fileHistory: (path: string, file: string) =>
     invoke(IpcChannels.RepoFileHistory, { path, file }),
   blame: (path: string, file: string) => invoke(IpcChannels.RepoBlame, { path, file }),

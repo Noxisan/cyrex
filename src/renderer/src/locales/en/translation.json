@@ -79,6 +79,21 @@
     "continue": "Continue",
     "abort": "Abort"
   },
+  "conflict": {
+    "count_one": "{{count}} conflict",
+    "count_other": "{{count}} conflicts",
+    "hunk": "Conflict {{n}}",
+    "current": "Current (ours)",
+    "incoming": "Incoming (theirs)",
+    "ours": "Ours",
+    "theirs": "Theirs",
+    "both": "Both",
+    "takeAll": "Take all:",
+    "markResolved": "Mark resolved",
+    "useOursFile": "Use current file",
+    "useTheirsFile": "Use incoming file",
+    "binary": "Binary conflict — choose one whole side above."
+  },
   "graph": {
     "title": "Commit Graph",
     "empty": "No commits to display.",

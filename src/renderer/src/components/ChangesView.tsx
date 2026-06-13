@@ -13,6 +13,7 @@ import {
 } from '../hooks/useRepo'
 import { DiffPanel } from './DiffPanel'
 import { CommitBox } from './CommitBox'
+import { ConflictEditor } from './ConflictEditor'
 
 const STATUS_LABEL: Record<string, string> = {
   added: 'A',
@@ -173,6 +174,12 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
     ...(status?.untracked ?? []).map((file) => ({ file, staged: false, untracked: true }))
   ]
 
+  // A conflicted file gets the dedicated resolver instead of a plain diff.
+  const selectedConflicted =
+    !!selectedFile &&
+    !selectedFile.staged &&
+    (status?.conflicted ?? []).some((f) => f.path === selectedFile.file)
+
   const isSelected = (r: Row): boolean =>
     selectedFile?.file === r.file.path && selectedFile?.staged === r.staged
 
@@ -247,7 +254,9 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {selectedFile ? (
+        {selectedFile && selectedConflicted ? (
+          <ConflictEditor repoPath={repoPath} file={selectedFile.file} />
+        ) : selectedFile ? (
           <DiffPanel
             files={diff.data?.files}
             isLoading={diff.isLoading}

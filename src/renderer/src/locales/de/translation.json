@@ -79,6 +79,21 @@
     "continue": "Fortsetzen",
     "abort": "Abbrechen"
   },
+  "conflict": {
+    "count_one": "{{count}} Konflikt",
+    "count_other": "{{count}} Konflikte",
+    "hunk": "Konflikt {{n}}",
+    "current": "Aktuell (ours)",
+    "incoming": "Eingehend (theirs)",
+    "ours": "Ours",
+    "theirs": "Theirs",
+    "both": "Beide",
+    "takeAll": "Alle übernehmen:",
+    "markResolved": "Als gelöst markieren",
+    "useOursFile": "Aktuelle Datei verwenden",
+    "useTheirsFile": "Eingehende Datei verwenden",
+    "binary": "Binärkonflikt — oben eine ganze Seite wählen."
+  },
   "graph": {
     "title": "Commit-Graph",
     "empty": "Keine Commits vorhanden.",

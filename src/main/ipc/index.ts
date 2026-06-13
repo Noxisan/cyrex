@@ -29,6 +29,8 @@ import {
   renameBranchSchema,
   repoPathSchema,
   resetSchema,
+  resolveConflictSchema,
+  resolveSideSchema,
   revertSchema,
   searchSchema,
   stashIndexSchema,
@@ -295,6 +297,27 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoAbortOp,
     wrap(repoPathSchema, async (req) => {
       await engine.abortOperation(req.path)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoReadConflict,
+    wrap(fileOpSchema, (req) => engine.readConflict(req.path, req.file))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoResolveConflict,
+    wrap(resolveConflictSchema, async (req) => {
+      await engine.resolveConflict(req.path, req.file, req.content)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoResolveSide,
+    wrap(resolveSideSchema, async (req) => {
+      await engine.resolveConflictSide(req.path, req.file, req.side)
       return null
     })
   )
