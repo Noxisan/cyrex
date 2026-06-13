@@ -70,7 +70,9 @@ export const applyPartialSchema = z.object({
 
 export const commitSchema = z.object({
   path: z.string().min(1),
-  message: z.string().min(1).max(20_000)
+  message: z.string().min(1).max(20_000),
+  amend: z.boolean().optional(),
+  sign: z.boolean().optional()
 })
 
 // A ref or branch name: no whitespace/control chars, no leading '-', and none

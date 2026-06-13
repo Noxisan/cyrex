@@ -199,6 +199,18 @@ export interface ReflogEntry {
   author: string
 }
 
+/** Context the commit box needs for amend and signing. */
+export interface CommitContext {
+  /** Whether HEAD exists (false on an unborn branch — nothing to amend). */
+  hasHead: boolean
+  /** Full message of HEAD, for pre-filling an amend. */
+  headMessage: string
+  /** True when a signing key / gpgsign is configured (so signing can work). */
+  signingConfigured: boolean
+  /** True when the user's config signs every commit by default. */
+  signByDefault: boolean
+}
+
 // --- interactive rebase -----------------------------------------------------
 
 /** What to do with a commit during an interactive rebase. */

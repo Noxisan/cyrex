@@ -170,7 +170,8 @@ function useRepoMutation<TVars>(
         'tags',
         'stashes',
         'reflog',
-        'conflict'
+        'conflict',
+        'commitContext'
       ]) {
         void qc.invalidateQueries({ queryKey: [key] })
       }
@@ -291,5 +292,15 @@ export function useAbortOperation(path: string) {
 }
 
 export function useCommit(path: string) {
-  return useRepoMutation((message: string) => window.cyrex.commit(path, message))
+  return useRepoMutation((v: { message: string; amend?: boolean; sign?: boolean }) =>
+    window.cyrex.commit(path, v.message, v.amend, v.sign)
+  )
+}
+
+export function useCommitContext(path: string | null) {
+  return useQuery({
+    queryKey: ['commitContext', path],
+    enabled: !!path,
+    queryFn: async () => unwrap(await window.cyrex.commitContext(path!))
+  })
 }

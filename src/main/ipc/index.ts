@@ -156,7 +156,14 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle(
     IpcChannels.RepoCommit,
-    wrap(commitSchema, (req) => engine.commit(req.path, req.message))
+    wrap(commitSchema, (req) =>
+      engine.commit(req.path, req.message, { amend: req.amend, sign: req.sign })
+    )
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoCommitContext,
+    wrap(repoPathSchema, (req) => engine.commitContext(req.path))
   )
 
   ipcMain.handle(

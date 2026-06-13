@@ -10,6 +10,7 @@ import type {
   BlameLine,
   Branch,
   Commit,
+  CommitContext,
   CommitDiff,
   ConflictFile,
   EngineResult,
@@ -43,6 +44,8 @@ export const IpcChannels = {
   /** DESTRUCTIVE — discard a file's working changes (must be confirmed). */
   RepoDiscard: 'repo:discard',
   RepoCommit: 'repo:commit',
+  /** HEAD message + signing config for the commit box (amend / sign). */
+  RepoCommitContext: 'repo:commitContext',
   /** Branch operations. */
   RepoCheckout: 'repo:checkout',
   RepoCheckoutRemote: 'repo:checkoutRemote',
@@ -158,8 +161,12 @@ export interface IpcApi {
     response: EngineResult<null>
   }
   [IpcChannels.RepoCommit]: {
-    request: { path: string; message: string }
+    request: { path: string; message: string; amend?: boolean; sign?: boolean }
     response: EngineResult<{ sha: string }>
+  }
+  [IpcChannels.RepoCommitContext]: {
+    request: { path: string }
+    response: EngineResult<CommitContext>
   }
   [IpcChannels.RepoCheckout]: {
     request: { path: string; ref: string }

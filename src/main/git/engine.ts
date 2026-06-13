@@ -14,6 +14,7 @@ import type {
   BlameLine,
   Branch,
   Commit,
+  CommitContext,
   CommitDiff,
   ConflictFile,
   DiffFile,
@@ -538,13 +539,59 @@ export interface CommitResult {
   sha: string
 }
 
-/** Create a commit from the staged index. Returns the new HEAD sha. */
-export async function commit(repoPath: string, message: string): Promise<CommitResult> {
+export interface CommitOptions {
+  /** Replace the previous commit (HEAD) instead of creating a new one. */
+  amend?: boolean
+  /** Sign the commit (GPG/SSH) per the user's git config. */
+  sign?: boolean
+}
+
+/**
+ * Create a commit from the staged index, or amend HEAD. Signing (`-S`) is
+ * delegated to the user's configured key/agent — Cyrex never handles the key
+ * material itself (CLAUDE.md §4). Returns the resulting HEAD sha.
+ */
+export async function commit(
+  repoPath: string,
+  message: string,
+  opts: CommitOptions = {}
+): Promise<CommitResult> {
   const trimmed = message.trim()
   if (trimmed.length === 0) throw new Error('Commit message must not be empty.')
-  await runGit(['commit', '-m', trimmed], { cwd: repoPath })
+  const args = ['commit']
+  if (opts.amend) args.push('--amend')
+  if (opts.sign) args.push('-S')
+  args.push('-m', trimmed)
+  await runGit(args, { cwd: repoPath })
   const { stdout } = await runGit(['rev-parse', 'HEAD'], { cwd: repoPath })
   return { sha: stdout.trim() }
+}
+
+/** Context the commit box needs: HEAD message (for amend) and signing config. */
+export async function commitContext(repoPath: string): Promise<CommitContext> {
+  const head = await runGit(['rev-parse', '--verify', '-q', 'HEAD'], {
+    cwd: repoPath,
+    throwOnError: false
+  })
+  const hasHead = head.code === 0
+
+  let headMessage = ''
+  if (hasHead) {
+    const { stdout } = await runGit(['log', '-1', '--format=%B'], { cwd: repoPath })
+    headMessage = stdout.replace(/\n+$/, '')
+  }
+
+  const cfg = async (key: string): Promise<string> =>
+    (await runGit(['config', '--get', key], { cwd: repoPath, throwOnError: false })).stdout.trim()
+  const signingKey = await cfg('user.signingkey')
+  const gpgsign = await cfg('commit.gpgsign')
+
+  return {
+    hasHead,
+    headMessage,
+    signingConfigured: signingKey.length > 0 || gpgsign === 'true',
+    signByDefault: gpgsign === 'true'
+  }
 }
 
 export type PartialOp = 'stage' | 'unstage' | 'discard'
