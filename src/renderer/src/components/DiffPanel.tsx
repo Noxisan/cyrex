@@ -1,8 +1,19 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Columns2, AlignLeft, FileDiff, History, Plus, Minus, Undo2, X } from 'lucide-react'
 import type { DiffFile, DiffLine } from '@shared/types'
 import { useRepoStore } from '../store/repoStore'
+import { highlightLine, languageForPath } from '../lib/highlight'
+
+/** A line's content, syntax-highlighted for the file's language. */
+function Code({ content, lang }: { content: string; lang: string | null }): React.JSX.Element {
+  return (
+    <span
+      className="whitespace-pre"
+      dangerouslySetInnerHTML={{ __html: highlightLine(content, lang) || ' ' }}
+    />
+  )
+}
 
 type ViewMode = 'inline' | 'split'
 export type PartialOp = 'stage' | 'unstage' | 'discard'
@@ -86,11 +97,13 @@ function toRows(lines: DiffLine[]): { left?: DiffLine; right?: DiffLine }[] {
 
 function InlineHunkLine({
   line,
+  lang,
   selectable,
   selected,
   onToggle
 }: {
   line: DiffLine
+  lang: string | null
   selectable: boolean
   selected: boolean
   onToggle?: () => void
@@ -108,12 +121,12 @@ function InlineHunkLine({
       <span className="w-4 shrink-0 select-none text-center text-fg-subtle">
         {gutterMark(line.kind)}
       </span>
-      <span className="whitespace-pre">{line.content || ' '}</span>
+      <Code content={line.content} lang={lang} />
     </div>
   )
 }
 
-function SplitCell({ line }: { line?: DiffLine }): React.JSX.Element {
+function SplitCell({ line, lang }: { line?: DiffLine; lang: string | null }): React.JSX.Element {
   if (!line) return <div className="flex-1 bg-surface-2/30" />
   const num = line.kind === 'add' ? line.newNumber : line.oldNumber
   return (
@@ -122,7 +135,7 @@ function SplitCell({ line }: { line?: DiffLine }): React.JSX.Element {
       <span className="w-3 shrink-0 select-none text-center text-fg-subtle">
         {gutterMark(line.kind)}
       </span>
-      <span className="whitespace-pre">{line.content || ' '}</span>
+      <Code content={line.content} lang={lang} />
     </div>
   )
 }
@@ -167,6 +180,7 @@ function FileBlock({
 }): React.JSX.Element {
   const { t } = useTranslation()
   const openInspector = useRepoStore((s) => s.openInspector)
+  const lang = useMemo(() => languageForPath(file.path), [file.path])
   const [open, setOpen] = useState(true)
   const [sel, setSel] = useState<{ hunk: number; lines: Set<number> } | null>(null)
   const [confirmHunk, setConfirmHunk] = useState<number | null>(null)
@@ -296,6 +310,7 @@ function FileBlock({
                         <InlineHunkLine
                           key={li}
                           line={l}
+                          lang={lang}
                           selectable={selectableInline && l.kind !== 'context'}
                           selected={sel?.hunk === engineHunk && sel.lines.has(li)}
                           onToggle={() => toggleLine(engineHunk, li)}
@@ -303,9 +318,9 @@ function FileBlock({
                       ))
                     : toRows(hunk.lines).map((row, ri) => (
                         <div key={ri} className="flex">
-                          <SplitCell line={row.left} />
+                          <SplitCell line={row.left} lang={lang} />
                           <span className="w-px shrink-0 bg-border" />
-                          <SplitCell line={row.right} />
+                          <SplitCell line={row.right} lang={lang} />
                         </div>
                       ))}
                 </div>

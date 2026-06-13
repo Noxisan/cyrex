@@ -69,6 +69,96 @@
   --color-conflict: #b86e1a;
 }
 
+/*
+ * Syntax-highlight token palette (highlight.js). Defined as variables so it
+ * themes with everything else; tints are chosen to stay readable over the
+ * subtle diff add/remove backgrounds. Dark defaults here, light overrides below.
+ */
+:root {
+  --hl-comment: #5f6673;
+  --hl-keyword: #c792ea;
+  --hl-string: #b6d98a;
+  --hl-number: #f78c6c;
+  --hl-title: #82aaff;
+  --hl-type: #ffcb6b;
+  --hl-attr: #ffcb6b;
+  --hl-tag: #f07178;
+  --hl-meta: #89ddff;
+  --hl-symbol: #f78c6c;
+}
+
+[data-theme='light'] {
+  --hl-comment: #8a909b;
+  --hl-keyword: #9020b0;
+  --hl-string: #2e7d32;
+  --hl-number: #b35900;
+  --hl-title: #1565c0;
+  --hl-type: #8d6e00;
+  --hl-attr: #8d6e00;
+  --hl-tag: #c0392f;
+  --hl-meta: #00838f;
+  --hl-symbol: #b35900;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-doctag {
+  color: var(--hl-keyword);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-char.escape_ {
+  color: var(--hl-string);
+}
+.hljs-number,
+.hljs-literal {
+  color: var(--hl-number);
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-section,
+.hljs-name {
+  color: var(--hl-title);
+}
+.hljs-type,
+.hljs-built_in,
+.hljs-title.class_,
+.hljs-class .hljs-title {
+  color: var(--hl-type);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  color: var(--hl-attr);
+}
+.hljs-tag {
+  color: var(--hl-tag);
+}
+.hljs-meta {
+  color: var(--hl-meta);
+}
+.hljs-symbol,
+.hljs-bullet,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-link {
+  color: var(--hl-symbol);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+
 html,
 body,
 #root {
