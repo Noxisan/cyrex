@@ -13,6 +13,7 @@ import type {
   CommitDiff,
   EngineResult,
   LogOptions,
+  ReflogEntry,
   RepoRef,
   RepoStatus,
   Stash,
@@ -69,6 +70,10 @@ export const IpcChannels = {
   RepoBlame: 'repo:blame',
   /** Search commits by message, author, or sha. */
   RepoSearch: 'repo:search',
+  /** Read HEAD's reflog (the undo / recovery surface). */
+  RepoReflog: 'repo:reflog',
+  /** DESTRUCTIVE when mode is 'hard' — move HEAD to a commit (reset). */
+  RepoReset: 'repo:reset',
   /** Returns which engine backend is active (cli | nodegit). */
   EngineInfo: 'engine:info'
 } as const
@@ -227,6 +232,14 @@ export interface IpcApi {
   [IpcChannels.RepoSearch]: {
     request: { path: string; query: string }
     response: EngineResult<Commit[]>
+  }
+  [IpcChannels.RepoReflog]: {
+    request: { path: string }
+    response: EngineResult<ReflogEntry[]>
+  }
+  [IpcChannels.RepoReset]: {
+    request: { path: string; sha: string; mode: 'soft' | 'mixed' | 'hard' }
+    response: EngineResult<null>
   }
   [IpcChannels.EngineInfo]: {
     request: void

@@ -67,7 +67,10 @@ export const cyrexApi = {
   fileHistory: (path: string, file: string) =>
     invoke(IpcChannels.RepoFileHistory, { path, file }),
   blame: (path: string, file: string) => invoke(IpcChannels.RepoBlame, { path, file }),
-  search: (path: string, query: string) => invoke(IpcChannels.RepoSearch, { path, query })
+  search: (path: string, query: string) => invoke(IpcChannels.RepoSearch, { path, query }),
+  reflog: (path: string) => invoke(IpcChannels.RepoReflog, { path }),
+  resetTo: (path: string, sha: string, mode: 'soft' | 'mixed' | 'hard') =>
+    invoke(IpcChannels.RepoReset, { path, sha, mode })
 }
 
 export type CyrexApi = typeof cyrexApi

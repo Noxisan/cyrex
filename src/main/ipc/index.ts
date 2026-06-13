@@ -28,6 +28,7 @@ import {
   pushSchema,
   renameBranchSchema,
   repoPathSchema,
+  resetSchema,
   revertSchema,
   searchSchema,
   stashIndexSchema,
@@ -311,5 +312,18 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     IpcChannels.RepoSearch,
     wrap(searchSchema, (req) => engine.searchCommits(req.path, req.query))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoReflog,
+    wrap(repoPathSchema, (req) => engine.reflog(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoReset,
+    wrap(resetSchema, async (req) => {
+      await engine.resetTo(req.path, req.sha, req.mode)
+      return null
+    })
   )
 }

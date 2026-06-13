@@ -153,6 +153,24 @@ export interface CommitDiff {
   files: DiffFile[]
 }
 
+/** One entry in HEAD's reflog — a recoverable point in the local history. */
+export interface ReflogEntry {
+  /** Position in the reflog (0 = most recent), i.e. HEAD@{index}. */
+  index: number
+  /** The reflog selector, e.g. "HEAD@{0}". */
+  selector: string
+  sha: string
+  shortSha: string
+  /** The action verb, e.g. "commit", "reset", "checkout", "merge", "rebase". */
+  action: string
+  /** The remainder of the reflog subject after the action, e.g. "moving to HEAD~1". */
+  message: string
+  /** ISO-8601 timestamp of the entry's commit. */
+  date: string
+  /** Author/actor name of the underlying commit. */
+  author: string
+}
+
 export interface BlameLine {
   /** 1-based line number in the final file. */
   line: number

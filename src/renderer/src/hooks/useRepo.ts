@@ -77,6 +77,20 @@ export function useSearch(path: string | null, query: string) {
   })
 }
 
+export function useReflog(path: string | null, enabled = true) {
+  return useQuery({
+    queryKey: ['reflog', path],
+    enabled: !!path && enabled,
+    queryFn: async () => unwrap(await window.cyrex.reflog(path!))
+  })
+}
+
+export function useResetTo(path: string) {
+  return useRepoMutation((v: { sha: string; mode: 'soft' | 'mixed' | 'hard' }) =>
+    window.cyrex.resetTo(path, v.sha, v.mode)
+  )
+}
+
 export function useCommitDiff(path: string | null, sha: string | null) {
   return useQuery({
     queryKey: ['commitDiff', path, sha],
@@ -114,7 +128,7 @@ function useRepoMutation<TVars>(
   return useMutation({
     mutationFn: async (vars: TVars) => unwrap(await fn(vars)),
     onSuccess: () => {
-      for (const key of ['status', 'workingDiff', 'log', 'branches', 'tags', 'stashes']) {
+      for (const key of ['status', 'workingDiff', 'log', 'branches', 'tags', 'stashes', 'reflog']) {
         void qc.invalidateQueries({ queryKey: [key] })
       }
       if (successMessage) pushToast(successMessage, 'success')

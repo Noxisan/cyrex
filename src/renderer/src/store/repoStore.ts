@@ -28,6 +28,8 @@ interface RepoState {
   inspectorTab: 'history' | 'blame'
   /** Active commit-search query; when non-empty the graph shows results. */
   searchQuery: string
+  /** Whether the reflog (undo / recovery) overlay is open. */
+  reflogOpen: boolean
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
@@ -38,6 +40,8 @@ interface RepoState {
   openInspector: (file: string, tab?: 'history' | 'blame') => void
   closeInspector: () => void
   setSearchQuery: (query: string) => void
+  openReflog: () => void
+  closeReflog: () => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -73,6 +77,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   inspectorFile: null,
   inspectorTab: 'history',
   searchQuery: '',
+  reflogOpen: false,
   theme: initialTheme(),
 
   addRepo: (repo) =>
@@ -88,7 +93,8 @@ export const useRepoStore = create<RepoState>((set, get) => ({
       selectedSha: null,
       selectedFile: null,
       inspectorFile: null,
-      searchQuery: ''
+      searchQuery: '',
+      reflogOpen: false
     }),
   selectCommit: (sha) => set({ selectedSha: sha }),
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -96,6 +102,8 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   openInspector: (file, tab = 'history') => set({ inspectorFile: file, inspectorTab: tab }),
   closeInspector: () => set({ inspectorFile: null }),
   setSearchQuery: (query) => set({ searchQuery: query }),
+  openReflog: () => set({ reflogOpen: true }),
+  closeReflog: () => set({ reflogOpen: false }),
 
   setTheme: (theme) => {
     localStorage.setItem(THEME_KEY, theme)

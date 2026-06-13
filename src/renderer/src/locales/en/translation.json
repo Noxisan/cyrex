@@ -10,6 +10,7 @@
     "push": "Push",
     "stash": "Stash",
     "search": "Search",
+    "undo": "Undo",
     "settings": "Settings"
   },
   "welcome": {
@@ -88,6 +89,16 @@
     "clear": "Clear search",
     "results": "Search Results",
     "noResults": "No commits match \"{{query}}\"."
+  },
+  "reflog": {
+    "title": "Undo History",
+    "subtitle": "Every move of HEAD — pick a point to restore.",
+    "empty": "No reflog entries yet.",
+    "restore": "Restore to this point",
+    "resetSoft": "Reset here (keep all changes)",
+    "resetMixed": "Reset here (keep working changes, unstage)",
+    "resetHard": "Reset here (discard changes)",
+    "resetHardMessage": "Hard-reset HEAD to {{target}}? Uncommitted changes in the working tree and index will be discarded. The commits you leave behind stay in the reflog."
   },
   "detail": {
     "title": "Commit",

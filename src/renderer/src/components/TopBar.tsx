@@ -5,7 +5,8 @@ import {
   Archive,
   FolderOpen,
   RefreshCw,
-  Settings
+  Settings,
+  Undo2
 } from 'lucide-react'
 import { useState } from 'react'
 import { useRepoStore } from '../store/repoStore'
@@ -55,6 +56,7 @@ export function TopBar(): React.JSX.Element {
   const { t } = useTranslation()
   const activePath = useRepoStore((s) => s.activePath)
   const addRepo = useRepoStore((s) => s.addRepo)
+  const openReflog = useRepoStore((s) => s.openReflog)
   const stashSave = useStashSave(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
@@ -135,6 +137,12 @@ export function TopBar(): React.JSX.Element {
         loading={push.isPending}
       />
       <ToolButton label={t('actions.stash')} icon={Archive} onClick={stash} disabled={!hasRepo} />
+      <ToolButton
+        label={t('actions.undo')}
+        icon={Undo2}
+        onClick={openReflog}
+        disabled={!hasRepo}
+      />
 
       <div className="flex-1" />
 

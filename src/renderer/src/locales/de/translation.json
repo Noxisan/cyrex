@@ -10,6 +10,7 @@
     "push": "Push",
     "stash": "Stash",
     "search": "Suchen",
+    "undo": "Rückgängig",
     "settings": "Einstellungen"
   },
   "welcome": {
@@ -88,6 +89,16 @@
     "clear": "Suche löschen",
     "results": "Suchergebnisse",
     "noResults": "Keine Commits passen zu \"{{query}}\"."
+  },
+  "reflog": {
+    "title": "Rückgängig-Verlauf",
+    "subtitle": "Jede Bewegung von HEAD — einen Punkt zum Wiederherstellen wählen.",
+    "empty": "Noch keine Reflog-Einträge.",
+    "restore": "Auf diesen Punkt zurücksetzen",
+    "resetSoft": "Hierher zurücksetzen (alle Änderungen behalten)",
+    "resetMixed": "Hierher zurücksetzen (Arbeitsänderungen behalten, unstagen)",
+    "resetHard": "Hierher zurücksetzen (Änderungen verwerfen)",
+    "resetHardMessage": "HEAD hart auf {{target}} zurücksetzen? Nicht committete Änderungen im Arbeitsverzeichnis und im Index werden verworfen. Die zurückgelassenen Commits bleiben im Reflog erhalten."
   },
   "detail": {
     "title": "Commit",

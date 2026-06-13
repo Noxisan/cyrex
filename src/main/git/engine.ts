@@ -19,6 +19,7 @@ import type {
   FileStatus,
   FileStatusCode,
   LogOptions,
+  ReflogEntry,
   RepoOperation,
   RepoRef,
   RepoStatus,
@@ -280,6 +281,63 @@ export async function fileHistory(
   args.push('--', file)
   const { stdout } = await runGit(args, { cwd: repoPath })
   return parseCommits(stdout)
+}
+
+// --- reflog & undo ----------------------------------------------------------
+//
+// The reflog is the local safety net: every move of HEAD (commit, reset,
+// checkout, merge, rebase, pull) is recorded, so a "lost" commit is almost
+// always still reachable. Surfacing it makes recovery from mistakes easy and
+// visible (CLAUDE.md §8: undo / reflog surface).
+
+const REFLOG_FORMAT = ['%H', '%h', '%gd', '%gs', '%cI', '%an'].join(US) + RS
+
+/** Read HEAD's reflog — recoverable points in the local history, newest first. */
+export async function reflog(repoPath: string, limit = 200): Promise<ReflogEntry[]> {
+  const { stdout } = await runGit(
+    ['reflog', '--no-abbrev', `--format=${REFLOG_FORMAT}`, `--max-count=${limit}`],
+    { cwd: repoPath }
+  )
+
+  const entries: ReflogEntry[] = []
+  for (const raw of stdout.split(RS)) {
+    const rec = raw.replace(/^\n/, '')
+    if (!rec.trim()) continue
+    const f = rec.split(US)
+    if (f.length < 6) continue
+    const selector = f[2]
+    const idx = selector.match(/@\{(\d+)\}/)
+    // The reflog subject is "<action>: <message>" (e.g. "reset: moving to HEAD~1");
+    // some entries have no colon (e.g. "initial pull"). Split on the first ": ".
+    const subject = f[3]
+    const sep = subject.indexOf(': ')
+    const action = sep === -1 ? subject : subject.slice(0, sep)
+    const message = sep === -1 ? '' : subject.slice(sep + 2)
+    entries.push({
+      index: idx ? Number(idx[1]) : entries.length,
+      selector,
+      sha: f[0],
+      shortSha: f[1],
+      action,
+      message,
+      date: f[4],
+      author: f[5]
+    })
+  }
+  return entries
+}
+
+export type ResetMode = 'soft' | 'mixed' | 'hard'
+
+/**
+ * Move HEAD to a commit. `soft` keeps the index and working tree; `mixed`
+ * (git default) resets the index but keeps working changes; `hard` is
+ * DESTRUCTIVE — it discards working-tree and index changes, so callers must
+ * confirm with the user first (CLAUDE.md §3 safety rules). The target sha is
+ * resolved from the reflog, which itself remains as a further undo path.
+ */
+export async function resetTo(repoPath: string, sha: string, mode: ResetMode): Promise<void> {
+  await runGit(['reset', `--${mode}`, sha], { cwd: repoPath })
 }
 
 // --- blame -----------------------------------------------------------------
