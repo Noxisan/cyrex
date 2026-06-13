@@ -91,6 +91,26 @@ export function useResetTo(path: string) {
   )
 }
 
+export function useConflict(path: string | null, file: string | null) {
+  return useQuery({
+    queryKey: ['conflict', path, file],
+    enabled: !!path && !!file,
+    queryFn: async () => unwrap(await window.cyrex.readConflict(path!, file!))
+  })
+}
+
+export function useResolveConflict(path: string) {
+  return useRepoMutation((v: { file: string; content: string }) =>
+    window.cyrex.resolveConflict(path, v.file, v.content)
+  )
+}
+
+export function useResolveSide(path: string) {
+  return useRepoMutation((v: { file: string; side: 'ours' | 'theirs' }) =>
+    window.cyrex.resolveSide(path, v.file, v.side)
+  )
+}
+
 export function useCommitDiff(path: string | null, sha: string | null) {
   return useQuery({
     queryKey: ['commitDiff', path, sha],
@@ -128,7 +148,16 @@ function useRepoMutation<TVars>(
   return useMutation({
     mutationFn: async (vars: TVars) => unwrap(await fn(vars)),
     onSuccess: () => {
-      for (const key of ['status', 'workingDiff', 'log', 'branches', 'tags', 'stashes', 'reflog']) {
+      for (const key of [
+        'status',
+        'workingDiff',
+        'log',
+        'branches',
+        'tags',
+        'stashes',
+        'reflog',
+        'conflict'
+      ]) {
         void qc.invalidateQueries({ queryKey: [key] })
       }
       if (successMessage) pushToast(successMessage, 'success')

@@ -131,6 +131,19 @@ export const resetSchema = z.object({
   mode: z.enum(['soft', 'mixed', 'hard'])
 })
 
+export const resolveConflictSchema = z.object({
+  path: z.string().min(1),
+  file: relFile,
+  // A resolved file can be large; cap generously to bound a hostile payload.
+  content: z.string().max(20_000_000)
+})
+
+export const resolveSideSchema = z.object({
+  path: z.string().min(1),
+  file: relFile,
+  side: z.enum(['ours', 'theirs'])
+})
+
 export const mergeSchema = z.object({ path: z.string().min(1), ref: refName })
 export const cherryPickSchema = z.object({ path: z.string().min(1), sha: refName })
 export const revertSchema = z.object({ path: z.string().min(1), sha: refName })

@@ -153,6 +153,34 @@ export interface CommitDiff {
   files: DiffFile[]
 }
 
+// --- conflicts --------------------------------------------------------------
+
+/** One conflicting region of a file, with each side's lines (no markers). */
+export interface ConflictHunk {
+  /** "our" side (current branch / HEAD). */
+  ours: string[]
+  /** Common ancestor lines, when the file was merged with diff3 markers. */
+  base: string[] | null
+  /** "their" side (the branch/commit being merged or applied). */
+  theirs: string[]
+}
+
+/**
+ * A run of a conflicted file: either unconflicted context lines, or a conflict
+ * hunk the user must resolve. Concatenating the chosen content of every segment
+ * yields the resolved file.
+ */
+export type ConflictSegment =
+  | { type: 'context'; lines: string[] }
+  | ({ type: 'conflict' } & ConflictHunk)
+
+export interface ConflictFile {
+  path: string
+  segments: ConflictSegment[]
+  /** Number of conflict hunks (0 means the markers were already resolved). */
+  conflicts: number
+}
+
 /** One entry in HEAD's reflog — a recoverable point in the local history. */
 export interface ReflogEntry {
   /** Position in the reflog (0 = most recent), i.e. HEAD@{index}. */

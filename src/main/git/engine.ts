@@ -8,13 +8,14 @@
  */
 
 import { basename, join, resolve } from 'node:path'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import type {
   BlameLine,
   Branch,
   Commit,
   CommitDiff,
+  ConflictFile,
   DiffFile,
   FileStatus,
   FileStatusCode,
@@ -28,6 +29,7 @@ import type {
 } from '@shared/types'
 import { gitVersion, isGitRepo, runGit } from './cli'
 import { parseUnifiedDiff } from './diff'
+import { parseConflictText } from './conflict'
 import { buildPatch } from './patch'
 
 const US = '\x1f' // unit separator — between fields
@@ -783,6 +785,54 @@ export async function continueOperation(repoPath: string): Promise<void> {
   } else {
     await runGit([op, '--continue'], { cwd: repoPath })
   }
+}
+
+// --- conflict resolution ----------------------------------------------------
+//
+// A stopped merge/cherry-pick/revert/rebase leaves conflict markers in the
+// working file. We surface each side so the user chooses (never auto-resolved —
+// CLAUDE.md §3); resolving writes the chosen content and stages the file, which
+// is what `git` treats as "resolved".
+
+/** Read a conflicted file and structure its markers into ours/theirs segments. */
+export async function readConflict(repoPath: string, file: string): Promise<ConflictFile> {
+  const buf = await readFile(join(repoPath, file))
+  if (buf.includes(0)) {
+    // Binary conflicts can't be merged line-wise; resolve by picking a whole side.
+    return { path: file, segments: [], conflicts: 0 }
+  }
+  return parseConflictText(file, buf.toString('utf8'))
+}
+
+/**
+ * Write resolved content (markers removed) for a conflicted file and stage it.
+ * Staging is how git records the conflict as resolved, which then lets the
+ * in-progress operation continue.
+ */
+export async function resolveConflict(
+  repoPath: string,
+  file: string,
+  content: string
+): Promise<void> {
+  await writeFile(join(repoPath, file), content)
+  await runGit(['add', '--', file], { cwd: repoPath })
+}
+
+export type ConflictSide = 'ours' | 'theirs'
+
+/**
+ * Resolve a conflicted file by taking one whole side (current vs. incoming) and
+ * staging it. Works for binary conflicts too, where a line-wise merge is
+ * impossible. Note git's `--ours`/`--theirs` are relative to the operation
+ * (during a rebase they are swapped versus a merge) — the UI labels follow git.
+ */
+export async function resolveConflictSide(
+  repoPath: string,
+  file: string,
+  side: ConflictSide
+): Promise<void> {
+  await runGit(['checkout', `--${side}`, '--', file], { cwd: repoPath })
+  await runGit(['add', '--', file], { cwd: repoPath })
 }
 
 export async function tags(repoPath: string): Promise<Tag[]> {
