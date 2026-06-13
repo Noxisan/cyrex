@@ -60,7 +60,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Blame and per-file history | Done |
 | Commit search (message / author / sha) | Done |
 | Undo / reflog surface | Done |
-| Embedded terminal | Planned |
+| Embedded terminal (command runner) | Done |
 
 ## Supported languages
 
