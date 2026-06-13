@@ -202,5 +202,23 @@
   "errors": {
     "generic": "Etwas ist schiefgelaufen.",
     "notARepo": "Dieser Ordner ist kein Git-Repository."
+  },
+  "palette": {
+    "open": "Befehlspalette",
+    "placeholder": "Befehl eingeben oder suchen…",
+    "noResults": "Keine passenden Befehle.",
+    "goHistory": "Zur Historie",
+    "goChanges": "Zu den Änderungen",
+    "stashQuick": "Änderungen stashen",
+    "openUndo": "Rückgängig-Verlauf (Reflog)",
+    "toggleTerminal": "Terminal umschalten",
+    "toggleTheme": "Theme umschalten",
+    "checkout": "{{name}} auschecken",
+    "group": {
+      "navigation": "Navigation",
+      "repository": "Repository",
+      "branches": "Branches",
+      "view": "Ansicht"
+    }
   }
 }

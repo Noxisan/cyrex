@@ -3,6 +3,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Archive,
+  Command,
   FolderOpen,
   RefreshCw,
   Settings,
@@ -59,6 +60,7 @@ export function TopBar(): React.JSX.Element {
   const addRepo = useRepoStore((s) => s.addRepo)
   const openReflog = useRepoStore((s) => s.openReflog)
   const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
+  const togglePalette = useRepoStore((s) => s.togglePalette)
   const stashSave = useStashSave(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
@@ -165,6 +167,18 @@ export function TopBar(): React.JSX.Element {
       </button>
 
       <div className="mx-1 h-5 w-px bg-border" aria-hidden />
+      <button
+        type="button"
+        onClick={togglePalette}
+        title={t('palette.open')}
+        aria-label={t('palette.open')}
+        className="flex items-center gap-1.5 rounded-[var(--radius-card)] px-2 py-1.5 text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+      >
+        <Command size={16} strokeWidth={1.75} />
+        <kbd className="hidden rounded border border-border px-1 text-[10px] text-fg-subtle xl:inline">
+          ⌘K
+        </kbd>
+      </button>
       <LanguageSwitcher />
       <ThemeToggle />
       <ToolButton label={t('actions.settings')} icon={Settings} />
