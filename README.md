@@ -59,7 +59,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Conflict detection (resolution UI) | Done (detection) |
 | Blame and per-file history | Done |
 | Commit search (message / author / sha) | Done |
-| Undo / reflog surface | Planned |
+| Undo / reflog surface | Done |
 | Embedded terminal | Planned |
 
 ## Supported languages
