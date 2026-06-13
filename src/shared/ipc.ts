@@ -95,6 +95,21 @@ export const IpcChannels = {
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels]
 
+/**
+ * Embedded-terminal channels. Kept separate from IpcApi because Data/Exit are
+ * main→renderer streams (events), not request/response invocations. The
+ * terminal runs user-initiated shell commands per the active repo (CLAUDE.md §8
+ * embedded terminal); like every channel it is allow-listed in the preload.
+ */
+export const TerminalChannels = {
+  Create: 'terminal:create',
+  Run: 'terminal:run',
+  Signal: 'terminal:signal',
+  Dispose: 'terminal:dispose',
+  Data: 'terminal:data',
+  Exit: 'terminal:exit'
+} as const
+
 export interface EngineInfo {
   backend: 'cli' | 'nodegit'
   /** e.g. "git version 2.54.0" */

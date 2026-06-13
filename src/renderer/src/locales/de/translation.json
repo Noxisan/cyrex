@@ -11,7 +11,13 @@
     "stash": "Stash",
     "search": "Suchen",
     "undo": "Rückgängig",
+    "terminal": "Terminal",
     "settings": "Einstellungen"
+  },
+  "terminal": {
+    "title": "Terminal",
+    "hint": "läuft im aktiven Repository",
+    "intro": "Cyrex-Terminal — zeilenbasierter Befehlsrunner (kein interaktives TTY)."
   },
   "welcome": {
     "title": "Kein Repository geöffnet",
