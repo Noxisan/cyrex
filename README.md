@@ -61,6 +61,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Commit search (message / author / sha) | Done |
 | Undo / reflog surface | Done |
 | Embedded terminal (command runner) | Done |
+| Command palette (Cmd/Ctrl+K) | Done |
 
 ## Supported languages
 
