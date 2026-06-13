@@ -202,5 +202,23 @@
   "errors": {
     "generic": "Something went wrong.",
     "notARepo": "That folder is not a Git repository."
+  },
+  "palette": {
+    "open": "Command palette",
+    "placeholder": "Type a command or search…",
+    "noResults": "No matching commands.",
+    "goHistory": "Go to History",
+    "goChanges": "Go to Changes",
+    "stashQuick": "Stash changes",
+    "openUndo": "Undo history (reflog)",
+    "toggleTerminal": "Toggle terminal",
+    "toggleTheme": "Toggle theme",
+    "checkout": "Check out {{name}}",
+    "group": {
+      "navigation": "Navigation",
+      "repository": "Repository",
+      "branches": "Branches",
+      "view": "View"
+    }
   }
 }

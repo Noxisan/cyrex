@@ -34,6 +34,8 @@ interface RepoState {
   rebaseBase: string | null
   /** Whether the embedded terminal pane is shown. */
   terminalOpen: boolean
+  /** Whether the command palette (Cmd/Ctrl+K) overlay is open. */
+  paletteOpen: boolean
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
@@ -49,6 +51,8 @@ interface RepoState {
   openRebase: (base: string) => void
   closeRebase: () => void
   toggleTerminal: () => void
+  togglePalette: () => void
+  closePalette: () => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
@@ -87,6 +91,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   reflogOpen: false,
   rebaseBase: null,
   terminalOpen: false,
+  paletteOpen: false,
   theme: initialTheme(),
 
   addRepo: (repo) =>
@@ -117,6 +122,8 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   openRebase: (base) => set({ rebaseBase: base }),
   closeRebase: () => set({ rebaseBase: null }),
   toggleTerminal: () => set((s) => ({ terminalOpen: !s.terminalOpen })),
+  togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
+  closePalette: () => set({ paletteOpen: false }),
 
   setTheme: (theme) => {
     localStorage.setItem(THEME_KEY, theme)
