@@ -34,7 +34,7 @@ import type {
   Tag,
   Worktree
 } from '@shared/types'
-import { gitVersion, isGitRepo, runGit, scrubSecrets } from './cli'
+import { gitVersion, isGitRepo, runGit, runGitBuffer, scrubSecrets } from './cli'
 import { parseUnifiedDiff } from './diff'
 import { parseConflictText } from './conflict'
 import { buildPatch } from './patch'
@@ -994,6 +994,18 @@ export async function worktreeRemove(
   if (force) args.push('--force')
   args.push(worktreePath)
   await runGit(args, { cwd: repoPath })
+}
+
+// --- raw blobs (image diffs) -------------------------------------------------
+
+/**
+ * Raw bytes of a `git show` spec (e.g. `HEAD:logo.png`, `:logo.png` for the
+ * index, `<sha>^:logo.png`), or null when that revision/path does not exist.
+ * Binary-safe — used to render image versions in the diff view.
+ */
+export async function showBytes(repoPath: string, spec: string): Promise<Buffer | null> {
+  const res = await runGitBuffer(['show', spec], { cwd: repoPath, throwOnError: false })
+  return res.code === 0 ? res.stdout : null
 }
 
 // --- gitignore --------------------------------------------------------------

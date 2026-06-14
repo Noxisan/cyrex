@@ -90,6 +90,7 @@ Until the first release, see Build from source below.
 | Git LFS awareness: tracked patterns, pointer vs. content, pull | Done |
 | Visual .gitignore editing with live match preview | Done |
 | Conventional Commit helper (type / scope / breaking) | Done |
+| Image diffs (before/after with dimensions and size) | Done |
 
 ## Supported languages
 

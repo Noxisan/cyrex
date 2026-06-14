@@ -211,6 +211,30 @@ export interface CommitDiff {
   files: DiffFile[]
 }
 
+// --- image diffs ------------------------------------------------------------
+
+/** Which versions of a file an image diff should load (mirrors the diff source). */
+export type DiffSource =
+  | { kind: 'commit'; sha: string }
+  | { kind: 'working'; staged: boolean; untracked: boolean }
+
+/** One rendered side of an image diff. */
+export interface ImageInfo {
+  /** A `data:` URL for an <img>, or null when the image is too large to inline. */
+  dataUrl: string | null
+  /** Byte size of the image blob. */
+  bytes: number
+  /** Pixel dimensions, when decodable (null for SVG / undecodable formats). */
+  width: number | null
+  height: number | null
+}
+
+/** The before/after sides of an image change; a side is null when absent. */
+export interface ImageVersions {
+  before: ImageInfo | null
+  after: ImageInfo | null
+}
+
 // --- conflicts --------------------------------------------------------------
 
 /** One conflicting region of a file, with each side's lines (no markers). */

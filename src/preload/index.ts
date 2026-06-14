@@ -8,6 +8,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { IpcChannels, TerminalChannels, WindowChannels } from '@shared/ipc'
 import type { IpcApi } from '@shared/ipc'
 import type {
+  DiffSource,
   HostingProviderId,
   RebaseTodoItem,
   TerminalData,
@@ -37,6 +38,8 @@ export const cyrexApi = {
   pushTag: (path: string, name: string) => invoke(IpcChannels.RepoPushTag, { path, name }),
   commitDiff: (path: string, sha: string) =>
     invoke(IpcChannels.RepoCommitDiff, { path, sha }),
+  imageVersions: (path: string, file: string, source: DiffSource, oldPath?: string) =>
+    invoke(IpcChannels.RepoImageVersions, { path, file, source, oldPath }),
   workingDiff: (path: string, file: string, staged: boolean, untracked: boolean) =>
     invoke(IpcChannels.RepoWorkingDiff, { path, file, staged, untracked }),
   stage: (path: string, file: string) => invoke(IpcChannels.RepoStage, { path, file }),

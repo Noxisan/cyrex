@@ -10,5 +10,13 @@ export function DiffView({
   sha: string
 }): React.JSX.Element {
   const { data, isLoading, error } = useCommitDiff(repoPath, sha)
-  return <DiffPanel files={data?.files} isLoading={isLoading} error={error as Error | null} />
+  return (
+    <DiffPanel
+      files={data?.files}
+      isLoading={isLoading}
+      error={error as Error | null}
+      repoPath={repoPath}
+      source={{ kind: 'commit', sha }}
+    />
+  )
 }

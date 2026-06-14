@@ -323,7 +323,10 @@
     "binary": "Binärdatei — kein Text-Diff.",
     "noChanges": "Keine Textänderungen.",
     "loading": "Diff wird geladen…",
-    "empty": "Dieser Commit hat keine Dateiänderungen."
+    "empty": "Dieser Commit hat keine Dateiänderungen.",
+    "before": "Vorher",
+    "after": "Nachher",
+    "imageTooLarge": "Bild zu groß für die Vorschau."
   },
   "tabs": {
     "history": "Verlauf",

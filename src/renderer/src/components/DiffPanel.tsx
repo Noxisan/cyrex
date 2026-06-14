@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Columns2, AlignLeft, FileDiff, History, Plus, Minus, Undo2, X } from 'lucide-react'
-import type { DiffFile, DiffLine } from '@shared/types'
+import type { DiffFile, DiffLine, DiffSource } from '@shared/types'
 import { useRepoStore } from '../store/repoStore'
 import { highlightLine, languageForPath } from '../lib/highlight'
+import { ImageDiff, isImagePath } from './ImageDiff'
 
 /** A line's content, syntax-highlighted for the file's language. */
 function Code({ content, lang }: { content: string; lang: string | null }): React.JSX.Element {
@@ -170,13 +171,18 @@ function FileBlock({
   file,
   fileHunkBase,
   mode,
-  actions
+  actions,
+  repoPath,
+  source
 }: {
   file: DiffFile
   /** Index of this file's first hunk in the engine's view (single-file = 0). */
   fileHunkBase: number
   mode: ViewMode
   actions?: DiffActions
+  /** Set together to enable visual image diffs for binary image files. */
+  repoPath?: string
+  source?: DiffSource
 }): React.JSX.Element {
   const { t } = useTranslation()
   const openInspector = useRepoStore((s) => s.openInspector)
@@ -255,7 +261,11 @@ function FileBlock({
       {open && (
         <div className="overflow-x-auto">
           {file.binary ? (
-            <p className="px-3 py-2 text-xs italic text-fg-subtle">{t('diff.binary')}</p>
+            repoPath && source && isImagePath(file.path) ? (
+              <ImageDiff repoPath={repoPath} source={source} file={file} />
+            ) : (
+              <p className="px-3 py-2 text-xs italic text-fg-subtle">{t('diff.binary')}</p>
+            )
           ) : file.hunks.length === 0 ? (
             <p className="px-3 py-2 text-xs italic text-fg-subtle">{t('diff.noChanges')}</p>
           ) : (
@@ -370,13 +380,18 @@ export function DiffPanel({
   isLoading,
   error,
   title,
-  actions
+  actions,
+  repoPath,
+  source
 }: {
   files: DiffFile[] | undefined
   isLoading: boolean
   error: Error | null
   title?: string
   actions?: DiffActions
+  /** Set together to enable visual image diffs for binary image files. */
+  repoPath?: string
+  source?: DiffSource
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [mode, setMode] = useState<ViewMode>('inline')
@@ -432,6 +447,8 @@ export function DiffPanel({
               fileHunkBase={base}
               mode={mode}
               actions={actions}
+              repoPath={repoPath}
+              source={source}
             />
           )
         })}

@@ -14,6 +14,8 @@ import type {
   CommitDiff,
   ConflictFile,
   DeviceLoginStart,
+  DiffSource,
+  ImageVersions,
   DeviceLoginStatus,
   EngineResult,
   HostingAccount,
@@ -47,6 +49,8 @@ export const IpcChannels = {
   RepoPushTag: 'repo:pushTag',
   /** Structured diff for a single commit (against its first parent). */
   RepoCommitDiff: 'repo:commitDiff',
+  /** Before/after image versions for an image file in a diff. */
+  RepoImageVersions: 'repo:imageVersions',
   /** Diff for a single working-tree file (staged or unstaged). */
   RepoWorkingDiff: 'repo:workingDiff',
   RepoStage: 'repo:stage',
@@ -233,6 +237,10 @@ export interface IpcApi {
   [IpcChannels.RepoCommitDiff]: {
     request: { path: string; sha: string }
     response: EngineResult<CommitDiff>
+  }
+  [IpcChannels.RepoImageVersions]: {
+    request: { path: string; file: string; source: DiffSource; oldPath?: string }
+    response: EngineResult<ImageVersions>
   }
   [IpcChannels.RepoWorkingDiff]: {
     request: { path: string; file: string; staged: boolean; untracked: boolean }

@@ -12,6 +12,7 @@ import { IpcChannels } from '@shared/ipc'
 import type { EngineResult, RepoRef } from '@shared/types'
 import * as engine from '../git/engine'
 import * as hosting from '../hosting/service'
+import { imageVersions } from '../images'
 import { scrubSecrets } from '../git/cli'
 import {
   addIgnoreSchema,
@@ -23,6 +24,7 @@ import {
   hostingListReposSchema,
   hostingPollLoginSchema,
   hostingStartLoginSchema,
+  imageVersionsSchema,
   setRemoteSchema,
   checkoutRemoteSchema,
   checkoutSchema,
@@ -151,6 +153,13 @@ export function registerIpcHandlers(): void {
   ipcMain.handle(
     IpcChannels.RepoCommitDiff,
     wrap(commitDiffSchema, (req) => engine.commitDiff(req.path, req.sha))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoImageVersions,
+    wrap(imageVersionsSchema, (req) =>
+      imageVersions(req.path, { path: req.file, oldPath: req.oldPath, source: req.source })
+    )
   )
 
   ipcMain.handle(

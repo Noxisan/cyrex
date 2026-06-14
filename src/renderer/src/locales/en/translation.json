@@ -323,7 +323,10 @@
     "binary": "Binary file — no text diff.",
     "noChanges": "No textual changes.",
     "loading": "Loading diff…",
-    "empty": "This commit has no file changes."
+    "empty": "This commit has no file changes.",
+    "before": "Before",
+    "after": "After",
+    "imageTooLarge": "Image too large to preview."
   },
   "tabs": {
     "history": "History",

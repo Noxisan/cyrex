@@ -33,6 +33,14 @@ export const commitDiffSchema = z.object({
     .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 0x20), 'invalid ref')
 })
 
+// A git-object-ish ref (sha / short sha / name): no whitespace or control chars.
+const revish = z
+  .string()
+  .min(1)
+  .max(255)
+  .regex(/^\S+$/, 'invalid ref')
+  .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 0x20), 'invalid ref')
+
 // A repo-relative file path. Reject absolute paths and parent-dir traversal so
 // an operation can never escape the repository root.
 const relFile = z
@@ -45,6 +53,16 @@ const relFile = z
 export const fileOpSchema = z.object({
   path: z.string().min(1),
   file: relFile
+})
+
+export const imageVersionsSchema = z.object({
+  path: z.string().min(1),
+  file: relFile,
+  oldPath: relFile.optional(),
+  source: z.discriminatedUnion('kind', [
+    z.object({ kind: z.literal('commit'), sha: revish }),
+    z.object({ kind: z.literal('working'), staged: z.boolean(), untracked: z.boolean() })
+  ])
 })
 
 export const workingDiffSchema = z.object({

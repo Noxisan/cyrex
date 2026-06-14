@@ -124,6 +124,78 @@ export function runGit(args: string[], opts: GitRunOptions = {}): Promise<GitRun
   })
 }
 
+export interface GitBufferResult {
+  /** Raw stdout bytes (not decoded — safe for binary blobs like images). */
+  stdout: Buffer
+  stderr: string
+  code: number | null
+}
+
+/**
+ * Run git and buffer stdout as raw bytes — for binary content (e.g. `git show
+ * <rev>:<image>`) where utf8 decoding would corrupt the data. stderr is still
+ * decoded as text for error reporting.
+ */
+export function runGitBuffer(args: string[], opts: GitRunOptions = {}): Promise<GitBufferResult> {
+  const { cwd, timeoutMs = 30_000, throwOnError = true, input, env } = opts
+
+  return new Promise((resolve, reject) => {
+    const child = spawn('git', args, {
+      cwd,
+      env: {
+        ...process.env,
+        GIT_TERMINAL_PROMPT: '0',
+        LC_ALL: 'C',
+        GIT_OPTIONAL_LOCKS: '0',
+        GIT_EDITOR: 'true',
+        GIT_SEQUENCE_EDITOR: 'true',
+        ...env
+      },
+      windowsHide: true
+    })
+
+    const chunks: Buffer[] = []
+    let stderr = ''
+    let settled = false
+
+    const timer = setTimeout(() => {
+      if (settled) return
+      settled = true
+      child.kill('SIGKILL')
+      reject(new GitError(`git ${args[0]} timed out after ${timeoutMs}ms`, null, ''))
+    }, timeoutMs)
+
+    if (input !== undefined) {
+      child.stdin.on('error', () => {
+        /* ignore EPIPE */
+      })
+      child.stdin.end(input)
+    }
+
+    child.stderr.setEncoding('utf8')
+    child.stdout.on('data', (d: Buffer) => chunks.push(d))
+    child.stderr.on('data', (d: string) => (stderr += d))
+
+    child.on('error', (err) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      reject(new GitError(scrubSecrets(err.message), null, ''))
+    })
+
+    child.on('close', (code) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      if (code !== 0 && throwOnError) {
+        reject(new GitError(scrubSecrets(stderr.trim() || `git exited with code ${code}`), code, scrubSecrets(stderr)))
+        return
+      }
+      resolve({ stdout: Buffer.concat(chunks), stderr, code })
+    })
+  })
+}
+
 /** Resolve the installed git version, or throw GitError if git is missing. */
 export async function gitVersion(): Promise<string> {
   const { stdout } = await runGit(['--version'])

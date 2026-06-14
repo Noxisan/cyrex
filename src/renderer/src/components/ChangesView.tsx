@@ -309,6 +309,12 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
             isLoading={diff.isLoading}
             error={diff.error as Error | null}
             title={selectedFile.file}
+            repoPath={repoPath}
+            source={{
+              kind: 'working',
+              staged: selectedFile.staged,
+              untracked: selectedFile.untracked
+            }}
             actions={
               // Untracked files have no hunks to partial-stage; stage them whole.
               selectedFile.untracked

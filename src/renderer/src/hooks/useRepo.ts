@@ -6,7 +6,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import type { EngineResult, LogOptions, RebaseTodoItem } from '@shared/types'
+import type { DiffSource, EngineResult, LogOptions, RebaseTodoItem } from '@shared/types'
 import { useToastStore } from '../store/toastStore'
 
 function unwrap<T>(res: EngineResult<T>): T {
@@ -147,6 +147,20 @@ export function useCommitDiff(path: string | null, sha: string | null) {
     // Diffs are immutable for a given commit — cache them aggressively.
     staleTime: 5 * 60_000,
     queryFn: async () => unwrap(await window.cyrex.commitDiff(path!, sha!))
+  })
+}
+
+export function useImageVersions(
+  path: string,
+  source: DiffSource,
+  file: string,
+  oldPath?: string
+) {
+  return useQuery({
+    queryKey: ['imageVersions', path, source, file, oldPath],
+    // Commit blobs are immutable; working-tree ones change with the file.
+    staleTime: source.kind === 'commit' ? 5 * 60_000 : 0,
+    queryFn: async () => unwrap(await window.cyrex.imageVersions(path, file, source, oldPath))
   })
 }
 
