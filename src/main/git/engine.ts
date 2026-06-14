@@ -28,7 +28,8 @@ import type {
   RepoRef,
   RepoStatus,
   Stash,
-  Tag
+  Tag,
+  Worktree
 } from '@shared/types'
 import { gitVersion, isGitRepo, runGit, scrubSecrets } from './cli'
 import { parseUnifiedDiff } from './diff'
@@ -872,6 +873,91 @@ export async function stashPop(repoPath: string, index: number): Promise<void> {
 /** DESTRUCTIVE: discard a stash entry without applying it. */
 export async function stashDrop(repoPath: string, index: number): Promise<void> {
   await runGit(['stash', 'drop', `stash@{${index}}`], { cwd: repoPath })
+}
+
+// --- worktrees --------------------------------------------------------------
+
+/**
+ * List the repository's worktrees. Parses `git worktree list --porcelain -z`,
+ * where each worktree is a group of NUL-terminated attribute lines separated by
+ * an empty token. The first entry is always the main working tree.
+ */
+export async function worktreeList(repoPath: string): Promise<Worktree[]> {
+  const { stdout } = await runGit(['worktree', 'list', '--porcelain', '-z'], { cwd: repoPath })
+
+  const list: Worktree[] = []
+  let cur: Worktree | null = null
+  const flush = (): void => {
+    if (cur) list.push(cur)
+    cur = null
+  }
+  for (const tok of stdout.split('\0')) {
+    if (tok === '') {
+      flush()
+      continue
+    }
+    const sp = tok.indexOf(' ')
+    const key = sp === -1 ? tok : tok.slice(0, sp)
+    const val = sp === -1 ? '' : tok.slice(sp + 1)
+    if (key === 'worktree') {
+      cur = {
+        path: val,
+        head: null,
+        branch: null,
+        bare: false,
+        detached: false,
+        locked: false,
+        prunable: false,
+        isMain: list.length === 0
+      }
+    } else if (cur) {
+      if (key === 'HEAD') cur.head = val
+      else if (key === 'branch') cur.branch = val.replace(/^refs\/heads\//, '')
+      else if (key === 'bare') cur.bare = true
+      else if (key === 'detached') cur.detached = true
+      else if (key === 'locked') cur.locked = true
+      else if (key === 'prunable') cur.prunable = true
+    }
+  }
+  flush()
+  return list
+}
+
+/**
+ * Add a worktree at `parentDir/name`, checking out `ref`. With `newBranch`, a
+ * new branch named `ref` is created (from the current HEAD); otherwise `ref`
+ * must be an existing branch/commit. Returns the new worktree as a RepoRef.
+ */
+export async function worktreeAdd(
+  repoPath: string,
+  parentDir: string,
+  name: string,
+  ref: string,
+  newBranch = false
+): Promise<RepoRef> {
+  const target = join(parentDir, name)
+  if (existsSync(target)) throw new Error(`A folder named "${name}" already exists here.`)
+  const args = newBranch
+    ? ['worktree', 'add', '-b', ref, target]
+    : ['worktree', 'add', target, ref]
+  await runGit(args, { cwd: repoPath })
+  return openRepo(target)
+}
+
+/**
+ * DESTRUCTIVE: remove a worktree (deletes its working-tree directory). `force`
+ * is required when the worktree has uncommitted changes. The main worktree
+ * cannot be removed.
+ */
+export async function worktreeRemove(
+  repoPath: string,
+  worktreePath: string,
+  force = false
+): Promise<void> {
+  const args = ['worktree', 'remove']
+  if (force) args.push('--force')
+  args.push(worktreePath)
+  await runGit(args, { cwd: repoPath })
 }
 
 // --- merge / cherry-pick / revert -------------------------------------------

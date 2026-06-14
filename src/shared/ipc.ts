@@ -26,7 +26,8 @@ import type {
   RepoRef,
   RepoStatus,
   Stash,
-  Tag
+  Tag,
+  Worktree
 } from './types'
 
 export const IpcChannels = {
@@ -65,6 +66,11 @@ export const IpcChannels = {
   RepoStashPop: 'repo:stashPop',
   /** DESTRUCTIVE — discards a stash without applying it. */
   RepoStashDrop: 'repo:stashDrop',
+  /** Worktree operations. */
+  RepoWorktreeList: 'repo:worktreeList',
+  RepoWorktreeAdd: 'repo:worktreeAdd',
+  /** DESTRUCTIVE — deletes the worktree's working-tree directory. */
+  RepoWorktreeRemove: 'repo:worktreeRemove',
   /** Network operations (credentials handled by the system git). */
   RepoFetch: 'repo:fetch',
   RepoPull: 'repo:pull',
@@ -267,6 +273,18 @@ export interface IpcApi {
   }
   [IpcChannels.RepoStashDrop]: {
     request: { path: string; index: number }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoWorktreeList]: {
+    request: { path: string }
+    response: EngineResult<Worktree[]>
+  }
+  [IpcChannels.RepoWorktreeAdd]: {
+    request: { path: string; parentDir: string; name: string; ref: string; newBranch?: boolean }
+    response: EngineResult<RepoRef>
+  }
+  [IpcChannels.RepoWorktreeRemove]: {
+    request: { path: string; worktreePath: string; force?: boolean }
     response: EngineResult<null>
   }
   [IpcChannels.RepoFetch]: {

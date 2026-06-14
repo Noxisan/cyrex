@@ -8,6 +8,7 @@ import {
   Tag as TagIcon,
   Archive,
   FolderGit2,
+  FolderTree,
   Plus,
   Check,
   Star,
@@ -28,8 +29,11 @@ import {
   useStashDrop,
   useStashes,
   useStashPop,
-  useTags
+  useTags,
+  useWorktrees,
+  useWorktreeRemove
 } from '../hooks/useRepo'
+import { AddWorktreeDialog } from './AddWorktreeDialog'
 import { ContextMenu } from './ContextMenu'
 import type { MenuState } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -227,10 +231,12 @@ function ColorPopover({
 
 export function Sidebar(): React.JSX.Element {
   const { t } = useTranslation()
-  const { repos, activePath, setActive, removeRepo, toggleFavorite, setRepoColor } = useRepoStore()
+  const { repos, activePath, setActive, addRepo, removeRepo, toggleFavorite, setRepoColor } =
+    useRepoStore()
   const branches = useBranches(activePath)
   const tags = useTags(activePath)
   const stashes = useStashes(activePath)
+  const worktrees = useWorktrees(activePath)
 
   const path = activePath ?? ''
   const checkout = useCheckout(path)
@@ -244,10 +250,12 @@ export function Sidebar(): React.JSX.Element {
   const stashApply = useStashApply(path)
   const stashPop = useStashPop(path)
   const stashDrop = useStashDrop(path)
+  const worktreeRemove = useWorktreeRemove(path)
 
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const [creating, setCreating] = useState(false)
+  const [addingWorktree, setAddingWorktree] = useState(false)
   const [renaming, setRenaming] = useState<string | null>(null)
   // Branch being dragged, and the branch currently hovered as a drop target.
   const [dragBranch, setDragBranch] = useState<string | null>(null)
@@ -362,6 +370,46 @@ export function Sidebar(): React.JSX.Element {
               confirmLabel: t('stash.drop'),
               danger: true,
               onConfirm: () => stashDrop.mutate(index)
+            })
+        }
+      ]
+    })
+  }
+
+  // Open a worktree's directory as a repository (validated by the engine).
+  const openWorktree = async (wtPath: string): Promise<void> => {
+    if (wtPath === activePath) return
+    const res = await window.cyrex.openRepo(wtPath)
+    if (res.ok) {
+      addRepo(res.data)
+      setActive(res.data.path)
+    }
+  }
+
+  const worktreeMenu = (e: React.MouseEvent, wt: { path: string; isMain: boolean }): void => {
+    e.preventDefault()
+    setMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: t('worktree.open'),
+          disabled: wt.path === activePath,
+          onClick: () => void openWorktree(wt.path)
+        },
+        { label: t('worktree.copyPath'), onClick: () => void navigator.clipboard.writeText(wt.path) },
+        {
+          label: t('worktree.remove'),
+          danger: true,
+          // The main working tree can't be removed; neither can the active one.
+          disabled: wt.isMain || wt.path === activePath,
+          onClick: () =>
+            setConfirm({
+              title: t('worktree.remove'),
+              message: t('worktree.removeMessage', { path: wt.path }),
+              confirmLabel: t('worktree.remove'),
+              danger: true,
+              onConfirm: () => worktreeRemove.mutate({ worktreePath: wt.path, force: true })
             })
         }
       ]
@@ -560,6 +608,68 @@ export function Sidebar(): React.JSX.Element {
           ))
         )}
       </Section>
+
+      <Section
+        title={t('sidebar.worktrees')}
+        icon={FolderTree}
+        count={worktrees.data?.length}
+        defaultOpen={false}
+        action={
+          activePath && (
+            <button
+              type="button"
+              onClick={() => setAddingWorktree(true)}
+              title={t('worktree.add')}
+              aria-label={t('worktree.add')}
+              className="rounded-[var(--radius-card)] p-1 text-fg-muted hover:bg-surface-2 hover:text-accent"
+            >
+              <Plus size={14} strokeWidth={2} />
+            </button>
+          )
+        }
+      >
+        {!worktrees.data || worktrees.data.length === 0 ? (
+          <p className="px-3 py-1 ps-7 text-xs text-fg-subtle">{t('sidebar.empty')}</p>
+        ) : (
+          worktrees.data.map((wt) => {
+            const label = wt.branch ?? (wt.head ? wt.head.slice(0, 7) : wt.path.split('/').pop())
+            const badge = wt.isMain
+              ? t('worktree.main')
+              : wt.locked
+                ? t('worktree.locked')
+                : wt.detached
+                  ? t('worktree.detached')
+                  : undefined
+            return (
+              <div
+                key={wt.path}
+                onDoubleClick={() => void openWorktree(wt.path)}
+                onContextMenu={(e) => worktreeMenu(e, wt)}
+                title={`${wt.path} — double-click to open`}
+                className={`group flex cursor-pointer items-center gap-2 px-3 py-1 ps-7 text-xs hover:bg-surface-2 ${
+                  wt.path === activePath ? 'text-accent' : 'text-fg'
+                }`}
+              >
+                <FolderTree size={11} strokeWidth={1.75} className="shrink-0 text-fg-subtle" />
+                <span className="min-w-0 flex-1 truncate">{label}</span>
+                {badge && (
+                  <span className="shrink-0 rounded-[4px] bg-surface-2 px-1 text-[10px] text-fg-subtle">
+                    {badge}
+                  </span>
+                )}
+              </div>
+            )
+          })
+        )}
+      </Section>
+
+      {addingWorktree && activePath && (
+        <AddWorktreeDialog
+          repoPath={activePath}
+          branches={locals.map((b) => b.name)}
+          onClose={() => setAddingWorktree(false)}
+        />
+      )}
 
       <ContextMenu state={menu} onClose={() => setMenu(null)} />
       <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />

@@ -48,7 +48,9 @@ import {
   searchSchema,
   stashIndexSchema,
   stashSaveSchema,
-  workingDiffSchema
+  workingDiffSchema,
+  worktreeAddSchema,
+  worktreeRemoveSchema
 } from './schemas'
 
 /** Wrap an async handler so it always returns EngineResult and never throws. */
@@ -253,6 +255,26 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoStashDrop,
     wrap(stashIndexSchema, async (req) => {
       await engine.stashDrop(req.path, req.index)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoWorktreeList,
+    wrap(repoPathSchema, (req) => engine.worktreeList(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoWorktreeAdd,
+    wrap(worktreeAddSchema, (req) =>
+      engine.worktreeAdd(req.path, req.parentDir, req.name, req.ref, req.newBranch)
+    )
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoWorktreeRemove,
+    wrap(worktreeRemoveSchema, async (req) => {
+      await engine.worktreeRemove(req.path, req.worktreePath, req.force)
       return null
     })
   )

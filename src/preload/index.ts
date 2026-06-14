@@ -65,6 +65,11 @@ export const cyrexApi = {
     invoke(IpcChannels.RepoStashApply, { path, index }),
   stashPop: (path: string, index: number) => invoke(IpcChannels.RepoStashPop, { path, index }),
   stashDrop: (path: string, index: number) => invoke(IpcChannels.RepoStashDrop, { path, index }),
+  worktrees: (path: string) => invoke(IpcChannels.RepoWorktreeList, { path }),
+  worktreeAdd: (path: string, parentDir: string, name: string, ref: string, newBranch?: boolean) =>
+    invoke(IpcChannels.RepoWorktreeAdd, { path, parentDir, name, ref, newBranch }),
+  worktreeRemove: (path: string, worktreePath: string, force?: boolean) =>
+    invoke(IpcChannels.RepoWorktreeRemove, { path, worktreePath, force }),
   fetch: (path: string) => invoke(IpcChannels.RepoFetch, { path }),
   pull: (path: string) => invoke(IpcChannels.RepoPull, { path }),
   push: (path: string, force?: boolean) => invoke(IpcChannels.RepoPush, { path, force }),

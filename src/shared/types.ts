@@ -104,6 +104,23 @@ export interface Stash {
   message: string
 }
 
+/** A linked working tree (`git worktree`). */
+export interface Worktree {
+  /** Absolute path of the worktree's root. */
+  path: string
+  /** Checked-out commit sha, or null for a bare entry. */
+  head: string | null
+  /** Short branch name, or null when detached/bare. */
+  branch: string | null
+  bare: boolean
+  detached: boolean
+  locked: boolean
+  /** Git considers this worktree removable (its path is gone). */
+  prunable: boolean
+  /** The repository's primary working tree (cannot be removed). */
+  isMain: boolean
+}
+
 export interface LogOptions {
   /** Max commits to return (pagination). */
   limit?: number

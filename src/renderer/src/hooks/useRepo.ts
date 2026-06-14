@@ -153,8 +153,8 @@ export function useWorkingDiff(
  * as a toast so operations never fail silently. An optional success message is
  * toasted on completion (used for network ops that otherwise give no feedback).
  */
-function useRepoMutation<TVars>(
-  fn: (vars: TVars) => Promise<EngineResult<unknown>>,
+function useRepoMutation<TVars, TData = unknown>(
+  fn: (vars: TVars) => Promise<EngineResult<TData>>,
   successMessage?: string
 ) {
   const qc = useQueryClient()
@@ -169,6 +169,7 @@ function useRepoMutation<TVars>(
         'branches',
         'tags',
         'stashes',
+        'worktrees',
         'reflog',
         'conflict',
         'commitContext'
@@ -254,6 +255,26 @@ export function useStashPop(path: string) {
 
 export function useStashDrop(path: string) {
   return useRepoMutation((index: number) => window.cyrex.stashDrop(path, index))
+}
+
+export function useWorktrees(path: string | null) {
+  return useQuery({
+    queryKey: ['worktrees', path],
+    enabled: !!path,
+    queryFn: async () => unwrap(await window.cyrex.worktrees(path!))
+  })
+}
+
+export function useWorktreeAdd(path: string) {
+  return useRepoMutation((v: { parentDir: string; name: string; ref: string; newBranch?: boolean }) =>
+    window.cyrex.worktreeAdd(path, v.parentDir, v.name, v.ref, v.newBranch)
+  )
+}
+
+export function useWorktreeRemove(path: string) {
+  return useRepoMutation((v: { worktreePath: string; force?: boolean }) =>
+    window.cyrex.worktreeRemove(path, v.worktreePath, v.force)
+  )
 }
 
 export function useFetch(path: string) {

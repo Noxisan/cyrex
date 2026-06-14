@@ -84,7 +84,27 @@
     "remoteBranches": "Remote Branches",
     "tags": "Tags",
     "stashes": "Stashes",
+    "worktrees": "Worktrees",
     "empty": "None"
+  },
+  "worktree": {
+    "add": "Add worktree",
+    "addTitle": "Add a worktree",
+    "location": "Location",
+    "chooseLocation": "Choose a folder…",
+    "folderName": "Folder name",
+    "folderPlaceholder": "folder-name",
+    "branch": "Branch",
+    "branchPlaceholder": "branch name",
+    "newBranch": "Create as a new branch",
+    "main": "main",
+    "locked": "locked",
+    "detached": "detached",
+    "open": "Open",
+    "copyPath": "Copy path",
+    "remove": "Remove worktree",
+    "removeMessage": "Remove the worktree at {{path}}? Its working-tree directory will be deleted. Commits stay in the repository.",
+    "added": "Worktree added"
   },
   "common": {
     "cancel": "Cancel",

@@ -254,6 +254,19 @@ export const setRemoteSchema = z.object({
   name: refName.optional()
 })
 
+export const worktreeAddSchema = z.object({
+  path: z.string().min(1),
+  parentDir: z.string().min(1),
+  name: folderName,
+  ref: refName,
+  newBranch: z.boolean().optional()
+})
+export const worktreeRemoveSchema = z.object({
+  path: z.string().min(1),
+  worktreePath: z.string().min(1),
+  force: z.boolean().optional()
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>

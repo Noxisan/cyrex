@@ -84,7 +84,27 @@
     "remoteBranches": "Remote-Branches",
     "tags": "Tags",
     "stashes": "Stashes",
+    "worktrees": "Worktrees",
     "empty": "Keine"
+  },
+  "worktree": {
+    "add": "Worktree hinzufügen",
+    "addTitle": "Worktree hinzufügen",
+    "location": "Speicherort",
+    "chooseLocation": "Ordner wählen…",
+    "folderName": "Ordnername",
+    "folderPlaceholder": "ordner-name",
+    "branch": "Branch",
+    "branchPlaceholder": "Branch-Name",
+    "newBranch": "Als neuen Branch erstellen",
+    "main": "main",
+    "locked": "gesperrt",
+    "detached": "detached",
+    "open": "Öffnen",
+    "copyPath": "Pfad kopieren",
+    "remove": "Worktree entfernen",
+    "removeMessage": "Worktree unter {{path}} entfernen? Sein Arbeitsverzeichnis wird gelöscht. Commits bleiben im Repository erhalten.",
+    "added": "Worktree hinzugefügt"
   },
   "common": {
     "cancel": "Abbrechen",
