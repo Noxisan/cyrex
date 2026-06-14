@@ -769,9 +769,19 @@ function httpsHost(url: string): string | null {
   }
 }
 
-/** Best-effort: hand the token to the user's git credential helper (if any). */
-async function approveCredential(host: string, token: string): Promise<void> {
-  const input = `protocol=https\nhost=${host}\nusername=x-access-token\npassword=${token}\n\n`
+/**
+ * HTTPS credentials for clone/auth. `username` varies by provider:
+ * `x-access-token` (GitHub), `oauth2` (GitLab token), or the account username
+ * (Bitbucket app password). The secret is always carried in `password`.
+ */
+export interface CloneAuth {
+  username: string
+  password: string
+}
+
+/** Best-effort: hand the credentials to the user's git helper (if any). */
+async function approveCredential(host: string, auth: CloneAuth): Promise<void> {
+  const input = `protocol=https\nhost=${host}\nusername=${auth.username}\npassword=${auth.password}\n\n`
   try {
     await runGit(['credential', 'approve'], { input })
   } catch {
@@ -780,34 +790,34 @@ async function approveCredential(host: string, token: string): Promise<void> {
 }
 
 /**
- * Clone `cloneUrl` into `parentDir/name` and return the new RepoRef. When a
- * `token` is given (private repo), it authenticates via an inline credential
- * helper fed through the environment — never argv, never the saved config.
+ * Clone `cloneUrl` into `parentDir/name` and return the new RepoRef. When `auth`
+ * is given (private repo), it authenticates via an inline credential helper fed
+ * through the environment — never argv, never the saved config.
  */
 export async function cloneRepo(
   cloneUrl: string,
   parentDir: string,
   name: string,
-  token?: string
+  auth?: CloneAuth
 ): Promise<RepoRef> {
   const target = join(parentDir, name)
   if (existsSync(target)) throw new Error(`A folder named "${name}" already exists here.`)
 
   const args: string[] = []
   let env: Record<string, string> | undefined
-  if (token) {
-    // Inline helper responds only to `get`, reading the token from the env. The
-    // helper code is in argv but carries no secret; the token stays in env.
+  if (auth) {
+    // Inline helper responds only to `get`, reading the secret from the env. The
+    // helper code is in argv but carries no secret; user/password stay in env.
     const helper =
-      '!f() { test "$1" = get && echo username=x-access-token && echo "password=$CYREX_CLONE_TOKEN"; }; f'
+      '!f() { test "$1" = get && echo "username=$CYREX_CLONE_USER" && echo "password=$CYREX_CLONE_TOKEN"; }; f'
     args.push('-c', 'credential.helper=', '-c', `credential.helper=${helper}`)
-    env = { CYREX_CLONE_TOKEN: token }
+    env = { CYREX_CLONE_USER: auth.username, CYREX_CLONE_TOKEN: auth.password }
   }
   args.push('clone', cloneUrl, target)
   await runGit(args, { cwd: parentDir, timeoutMs: NETWORK_TIMEOUT, env })
 
   const host = httpsHost(cloneUrl)
-  if (token && host) await approveCredential(host, token)
+  if (auth && host) await approveCredential(host, auth)
 
   return openRepo(target)
 }

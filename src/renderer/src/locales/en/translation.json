@@ -47,6 +47,8 @@
     "deviceHint": "Your browser opened to the provider. Enter this code to authorize Cyrex:",
     "tokenTitle": "Connect {{provider}} with a token",
     "tokenHint": "Create a personal access token with repo scope and paste it here. It is stored in your OS keychain and never leaves this machine.",
+    "tokenHint_gitlab": "Create a personal access token with the 'api' scope and paste it here. It is stored in your OS keychain and never leaves this machine.",
+    "tokenHint_bitbucket": "Create an app password with repository read/write, then paste it as username:app_password. It is stored in your OS keychain and never leaves this machine.",
     "tokenPlaceholder": "Personal access token",
     "connect": "Connect",
     "cloneTitle": "Clone a repository",

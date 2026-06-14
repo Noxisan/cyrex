@@ -116,6 +116,22 @@ export function createRepo(accountId: string, input: CreateRepoInput): Promise<R
   return getProvider(providerOf(accountId)).createRepo(tokenFor(accountId), input)
 }
 
+/**
+ * Map a provider's stored secret to git HTTPS credentials. GitHub uses a fixed
+ * `x-access-token` user, GitLab `oauth2`, and Bitbucket the `username:app_password`
+ * pair the user pasted (so the username travels with the secret).
+ */
+function cloneAuth(accountId: string, secret: string): engine.CloneAuth {
+  const provider = providerOf(accountId)
+  if (provider === 'bitbucket') {
+    const i = secret.indexOf(':')
+    if (i > 0) return { username: secret.slice(0, i), password: secret.slice(i + 1) }
+    return { username: accountId.split(':')[1] ?? 'x-token-auth', password: secret }
+  }
+  if (provider === 'gitlab') return { username: 'oauth2', password: secret }
+  return { username: 'x-access-token', password: secret }
+}
+
 /** Clone a repo, resolving the account's token in-process (never via IPC). */
 export function cloneRepo(
   cloneUrl: string,
@@ -123,6 +139,7 @@ export function cloneRepo(
   name: string,
   accountId?: string
 ): Promise<RepoRef> {
-  const token = accountId ? credentials.getToken(accountId) ?? undefined : undefined
-  return engine.cloneRepo(cloneUrl, parentDir, name, token)
+  const secret = accountId ? credentials.getToken(accountId) : null
+  const auth = accountId && secret ? cloneAuth(accountId, secret) : undefined
+  return engine.cloneRepo(cloneUrl, parentDir, name, auth)
 }

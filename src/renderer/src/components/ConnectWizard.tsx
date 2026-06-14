@@ -178,7 +178,11 @@ export function ConnectWizard({ onClose }: { onClose: () => void }): React.JSX.E
       <h3 className="mb-1 text-sm font-semibold text-fg">
         {t('hosting.tokenTitle', { provider: provider ? PROVIDER_LABEL[provider] : '' })}
       </h3>
-      <p className="mb-3 text-xs text-fg-muted">{t('hosting.tokenHint')}</p>
+      <p className="mb-3 text-xs text-fg-muted">
+        {provider
+          ? t(`hosting.tokenHint_${provider}`, { defaultValue: t('hosting.tokenHint') })
+          : t('hosting.tokenHint')}
+      </p>
       <input
         autoFocus
         type="password"

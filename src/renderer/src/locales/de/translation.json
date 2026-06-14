@@ -47,6 +47,8 @@
     "deviceHint": "Dein Browser hat den Anbieter geöffnet. Gib diesen Code ein, um Cyrex zu autorisieren:",
     "tokenTitle": "{{provider}} mit Token verbinden",
     "tokenHint": "Erstelle einen Personal Access Token mit repo-Scope und füge ihn hier ein. Er wird im Schlüsselbund deines Systems gespeichert und verlässt diesen Rechner nie.",
+    "tokenHint_gitlab": "Erstelle einen Personal Access Token mit dem Scope 'api' und füge ihn hier ein. Er wird im Schlüsselbund deines Systems gespeichert und verlässt diesen Rechner nie.",
+    "tokenHint_bitbucket": "Erstelle ein App-Passwort mit Repository-Lese-/Schreibrechten und füge es als benutzername:app-passwort ein. Es wird im Schlüsselbund deines Systems gespeichert und verlässt diesen Rechner nie.",
     "tokenPlaceholder": "Personal Access Token",
     "connect": "Verbinden",
     "cloneTitle": "Repository klonen",

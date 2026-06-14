@@ -8,8 +8,9 @@ declare module '*?asset' {
 }
 
 /**
- * GitHub OAuth app client id (public; device flow needs no secret), injected at
- * build time from CYREX_GITHUB_CLIENT_ID via a Vite `define`. Empty string when
- * unset — device-flow login is then unavailable and token paste is used.
+ * OAuth app client ids (public; device flow needs no secret), injected at build
+ * time from CYREX_{GITHUB,GITLAB}_CLIENT_ID via a Vite `define`. Empty string
+ * when unset — device-flow login is then unavailable and token paste is used.
  */
 declare const __GITHUB_CLIENT_ID__: string
+declare const __GITLAB_CLIENT_ID__: string

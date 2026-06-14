@@ -11,10 +11,11 @@ const appVersion = JSON.parse(readFileSync(resolve('package.json'), 'utf-8')).ve
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
-    // Public GitHub OAuth client id for device-flow login (no secret). Empty
-    // unless the owner sets CYREX_GITHUB_CLIENT_ID — then token paste is used.
+    // Public OAuth client ids for device-flow login (no secret). Empty unless
+    // the owner sets CYREX_{GITHUB,GITLAB}_CLIENT_ID — then token paste is used.
     define: {
-      __GITHUB_CLIENT_ID__: JSON.stringify(process.env.CYREX_GITHUB_CLIENT_ID ?? '')
+      __GITHUB_CLIENT_ID__: JSON.stringify(process.env.CYREX_GITHUB_CLIENT_ID ?? ''),
+      __GITLAB_CLIENT_ID__: JSON.stringify(process.env.CYREX_GITLAB_CLIENT_ID ?? '')
     },
     build: {
       rollupOptions: {
