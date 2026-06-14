@@ -9,7 +9,8 @@ import {
   Archive,
   FolderGit2,
   Plus,
-  Check
+  Check,
+  Star
 } from 'lucide-react'
 import { useRepoStore } from '../store/repoStore'
 import {
@@ -165,9 +166,55 @@ function RefRow({
   )
 }
 
+/** A small swatch popover for picking a repository's dot color (or clearing it). */
+function ColorPopover({
+  x,
+  y,
+  current,
+  onPick,
+  onClose
+}: {
+  x: number
+  y: number
+  current?: string
+  onPick: (color?: string) => void
+  onClose: () => void
+}): React.JSX.Element {
+  const left = Math.min(x, window.innerWidth - 220)
+  const top = Math.min(y, window.innerHeight - 60)
+  return (
+    <div className="fixed inset-0 z-50" onMouseDown={onClose}>
+      <div
+        style={{ left, top }}
+        className="fixed flex items-center gap-1.5 rounded-[var(--radius-card)] border border-border bg-surface-2 p-2 shadow-xl"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={() => onPick(undefined)}
+          title="Default"
+          className="flex size-4 items-center justify-center rounded-full border border-border"
+          style={{ background: 'var(--color-fg-subtle)' }}
+        >
+          {!current && <Check size={10} className="text-bg" strokeWidth={3} />}
+        </button>
+        {LANE_COLORS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => onPick(c)}
+            className="size-4 rounded-full"
+            style={{ background: c, outline: current === c ? '2px solid var(--color-fg)' : undefined }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function Sidebar(): React.JSX.Element {
   const { t } = useTranslation()
-  const { repos, activePath, setActive } = useRepoStore()
+  const { repos, activePath, setActive, removeRepo, toggleFavorite, setRepoColor } = useRepoStore()
   const branches = useBranches(activePath)
   const tags = useTags(activePath)
   const stashes = useStashes(activePath)
@@ -192,10 +239,32 @@ export function Sidebar(): React.JSX.Element {
   // Branch being dragged, and the branch currently hovered as a drop target.
   const [dragBranch, setDragBranch] = useState<string | null>(null)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
+  // Open color-swatch popover for a repository row, anchored at a screen point.
+  const [colorPopover, setColorPopover] = useState<{ path: string; x: number; y: number } | null>(
+    null
+  )
 
   const locals = branches.data?.filter((b) => b.kind === 'local') ?? []
   const remotes = branches.data?.filter((b) => b.kind === 'remote') ?? []
   const currentBranch = locals.find((b) => b.current)?.name ?? null
+
+  const repoMenu = (e: React.MouseEvent, r: { path: string; favorite?: boolean }): void => {
+    e.preventDefault()
+    const { clientX: x, clientY: y } = e
+    setMenu({
+      x,
+      y,
+      items: [
+        { label: t('repo.open'), onClick: () => setActive(r.path), disabled: r.path === activePath },
+        {
+          label: r.favorite ? t('repo.unfavorite') : t('repo.favorite'),
+          onClick: () => toggleFavorite(r.path)
+        },
+        { label: t('repo.setColor'), onClick: () => setColorPopover({ path: r.path, x, y }) },
+        { label: t('repo.remove'), danger: true, onClick: () => removeRepo(r.path) }
+      ]
+    })
+  }
 
   const localMenu = (e: React.MouseEvent, name: string, current: boolean): void => {
     e.preventDefault()
@@ -318,19 +387,30 @@ export function Sidebar(): React.JSX.Element {
         {repos.length === 0 ? (
           <p className="px-3 py-1 ps-7 text-xs text-fg-subtle">{t('sidebar.empty')}</p>
         ) : (
-          repos.map((r) => (
-            <button
-              key={r.path}
-              type="button"
-              onClick={() => setActive(r.path)}
-              className={`flex w-full items-center gap-2 px-3 py-1 ps-7 text-start text-xs hover:bg-surface-2 ${
-                r.path === activePath ? 'text-accent' : 'text-fg'
-              }`}
-              title={r.path}
-            >
-              <span className="truncate">{r.name}</span>
-            </button>
-          ))
+          // Favorites float to the top; original order is otherwise preserved.
+          [...repos]
+            .sort((a, b) => Number(!!b.favorite) - Number(!!a.favorite))
+            .map((r) => (
+              <button
+                key={r.path}
+                type="button"
+                onClick={() => setActive(r.path)}
+                onContextMenu={(e) => repoMenu(e, r)}
+                className={`group flex w-full items-center gap-2 px-3 py-1 ps-7 text-start text-xs hover:bg-surface-2 ${
+                  r.path === activePath ? 'text-accent' : 'text-fg'
+                }`}
+                title={`${r.path} — right-click for options`}
+              >
+                <span
+                  className="size-2 shrink-0 rounded-full"
+                  style={{ background: r.color ?? 'var(--color-fg-subtle)' }}
+                />
+                <span className="flex-1 truncate">{r.name}</span>
+                {r.favorite && (
+                  <Star size={11} strokeWidth={2} className="shrink-0 fill-accent text-accent" />
+                )}
+              </button>
+            ))
         )}
       </Section>
 
@@ -467,6 +547,18 @@ export function Sidebar(): React.JSX.Element {
 
       <ContextMenu state={menu} onClose={() => setMenu(null)} />
       <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />
+      {colorPopover && (
+        <ColorPopover
+          x={colorPopover.x}
+          y={colorPopover.y}
+          current={repos.find((r) => r.path === colorPopover.path)?.color}
+          onPick={(color) => {
+            setRepoColor(colorPopover.path, color)
+            setColorPopover(null)
+          }}
+          onClose={() => setColorPopover(null)}
+        />
+      )}
     </nav>
   )
 }

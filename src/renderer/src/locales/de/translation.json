@@ -88,6 +88,13 @@
     "cancel": "Abbrechen",
     "create": "Erstellen"
   },
+  "repo": {
+    "open": "Öffnen",
+    "favorite": "Zu Favoriten hinzufügen",
+    "unfavorite": "Aus Favoriten entfernen",
+    "setColor": "Farbe festlegen",
+    "remove": "Aus Liste entfernen"
+  },
   "branch": {
     "new": "Neuer Branch",
     "namePlaceholder": "branch-name",

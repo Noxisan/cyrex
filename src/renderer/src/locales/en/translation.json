@@ -88,6 +88,13 @@
     "cancel": "Cancel",
     "create": "Create"
   },
+  "repo": {
+    "open": "Open",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "setColor": "Set color",
+    "remove": "Remove from list"
+  },
   "branch": {
     "new": "New branch",
     "namePlaceholder": "branch-name",

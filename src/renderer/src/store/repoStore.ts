@@ -10,6 +10,16 @@ import type { RepoRef } from '@shared/types'
 export type Theme = 'dark' | 'light'
 export type ViewMode = 'history' | 'changes'
 
+/**
+ * A repo in the sidebar list. Extends the engine's RepoRef with renderer-only
+ * presentation state (favorite, custom dot color). These never reach the engine;
+ * the color is a CSS variable string so it follows the active theme.
+ */
+export interface RepoEntry extends RepoRef {
+  favorite?: boolean
+  color?: string
+}
+
 /** A working-tree file the user has selected to diff in the Changes view. */
 export interface SelectedFile {
   file: string
@@ -18,7 +28,7 @@ export interface SelectedFile {
 }
 
 interface RepoState {
-  repos: RepoRef[]
+  repos: RepoEntry[]
   activePath: string | null
   selectedSha: string | null
   viewMode: ViewMode
@@ -42,6 +52,9 @@ interface RepoState {
   theme: Theme
 
   addRepo: (repo: RepoRef) => void
+  removeRepo: (path: string) => void
+  toggleFavorite: (path: string) => void
+  setRepoColor: (path: string, color?: string) => void
   setActive: (path: string | null) => void
   selectCommit: (sha: string | null) => void
   setViewMode: (mode: ViewMode) => void
@@ -67,13 +80,17 @@ interface RepoState {
 const REPOS_KEY = 'cyrex.repos'
 const THEME_KEY = 'cyrex.theme'
 
-function loadRepos(): RepoRef[] {
+function loadRepos(): RepoEntry[] {
   try {
     const raw = localStorage.getItem(REPOS_KEY)
-    return raw ? (JSON.parse(raw) as RepoRef[]) : []
+    return raw ? (JSON.parse(raw) as RepoEntry[]) : []
   } catch {
     return []
   }
+}
+
+function saveRepos(repos: RepoEntry[]): void {
+  localStorage.setItem(REPOS_KEY, JSON.stringify(repos))
 }
 
 function initialTheme(): Theme {
@@ -105,9 +122,37 @@ export const useRepoStore = create<RepoState>((set, get) => ({
 
   addRepo: (repo) =>
     set((s) => {
-      const repos = [repo, ...s.repos.filter((r) => r.path !== repo.path)]
-      localStorage.setItem(REPOS_KEY, JSON.stringify(repos))
+      // Preserve any existing favorite/color when re-opening a known repo.
+      const prev = s.repos.find((r) => r.path === repo.path)
+      const entry: RepoEntry = { ...repo, favorite: prev?.favorite, color: prev?.color }
+      const repos = [entry, ...s.repos.filter((r) => r.path !== repo.path)]
+      saveRepos(repos)
       return { repos, activePath: repo.path, selectedSha: null, selectedFile: null }
+    }),
+
+  removeRepo: (path) =>
+    set((s) => {
+      const repos = s.repos.filter((r) => r.path !== path)
+      saveRepos(repos)
+      // Drop selection if the removed repo was the active one.
+      if (s.activePath !== path) return { repos }
+      return { repos, activePath: null, selectedSha: null, selectedFile: null, searchQuery: '' }
+    }),
+
+  toggleFavorite: (path) =>
+    set((s) => {
+      const repos = s.repos.map((r) =>
+        r.path === path ? { ...r, favorite: !r.favorite } : r
+      )
+      saveRepos(repos)
+      return { repos }
+    }),
+
+  setRepoColor: (path, color) =>
+    set((s) => {
+      const repos = s.repos.map((r) => (r.path === path ? { ...r, color } : r))
+      saveRepos(repos)
+      return { repos }
     }),
 
   setActive: (path) =>
