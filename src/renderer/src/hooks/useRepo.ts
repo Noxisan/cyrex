@@ -275,6 +275,18 @@ export function useMerge(path: string) {
   return useRepoMutation((ref: string) => window.cyrex.merge(path, ref))
 }
 
+export function useMergeBranch(path: string) {
+  return useRepoMutation((v: { source: string; target: string }) =>
+    window.cyrex.mergeBranch(path, v.source, v.target)
+  )
+}
+
+export function useRebaseBranch(path: string) {
+  return useRepoMutation((v: { branch: string; onto: string }) =>
+    window.cyrex.rebaseBranch(path, v.branch, v.onto)
+  )
+}
+
 export function useCherryPick(path: string) {
   return useRepoMutation((sha: string) => window.cyrex.cherryPick(path, sha))
 }

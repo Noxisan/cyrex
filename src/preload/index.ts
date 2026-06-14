@@ -63,6 +63,10 @@ export const cyrexApi = {
   pull: (path: string) => invoke(IpcChannels.RepoPull, { path }),
   push: (path: string, force?: boolean) => invoke(IpcChannels.RepoPush, { path, force }),
   merge: (path: string, ref: string) => invoke(IpcChannels.RepoMerge, { path, ref }),
+  mergeBranch: (path: string, source: string, target: string) =>
+    invoke(IpcChannels.RepoMergeBranch, { path, source, target }),
+  rebaseBranch: (path: string, branch: string, onto: string) =>
+    invoke(IpcChannels.RepoRebaseBranch, { path, branch, onto }),
   cherryPick: (path: string, sha: string) => invoke(IpcChannels.RepoCherryPick, { path, sha }),
   revert: (path: string, sha: string) => invoke(IpcChannels.RepoRevert, { path, sha }),
   continueOperation: (path: string) => invoke(IpcChannels.RepoContinueOp, { path }),

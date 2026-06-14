@@ -801,6 +801,36 @@ export async function merge(repoPath: string, ref: string): Promise<void> {
   await runGit(['merge', '--no-edit', ref], { cwd: repoPath })
 }
 
+/**
+ * Merge `source` into `target` (the drag-and-drop "drop source onto target"
+ * gesture). Checks out `target` first so the merge lands on its tip, then merges.
+ * Conflicts stop git and surface as an error; status().operation then drives the
+ * in-progress UI (never auto-resolved — CLAUDE.md §3).
+ */
+export async function mergeBranch(
+  repoPath: string,
+  source: string,
+  target: string
+): Promise<void> {
+  await runGit(['checkout', target], { cwd: repoPath })
+  await runGit(['merge', '--no-edit', source], { cwd: repoPath })
+}
+
+/**
+ * Rebase `branch` onto `onto` (drag-and-drop). Checks out `branch`, then replays
+ * it onto the tip of `onto`. DESTRUCTIVE — rewrites history (recoverable via the
+ * reflog / Undo); callers confirm. `--autostash` parks any working changes so the
+ * rebase can start; a conflict pauses it for the in-progress UI to handle.
+ */
+export async function rebaseBranch(
+  repoPath: string,
+  branch: string,
+  onto: string
+): Promise<void> {
+  await runGit(['checkout', branch], { cwd: repoPath })
+  await runGit(['rebase', '--autostash', onto], { cwd: repoPath })
+}
+
 /** Apply the changes of a commit onto the current branch. */
 export async function cherryPick(repoPath: string, sha: string): Promise<void> {
   await runGit(['cherry-pick', sha], { cwd: repoPath })

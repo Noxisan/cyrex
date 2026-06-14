@@ -25,8 +25,10 @@ import {
   fileOpSchema,
   interactiveRebaseSchema,
   logSchema,
+  mergeBranchSchema,
   mergeSchema,
   pushSchema,
+  rebaseBranchSchema,
   rebaseCommitsSchema,
   renameBranchSchema,
   repoPathSchema,
@@ -274,6 +276,22 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoMerge,
     wrap(mergeSchema, async (req) => {
       await engine.merge(req.path, req.ref)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoMergeBranch,
+    wrap(mergeBranchSchema, async (req) => {
+      await engine.mergeBranch(req.path, req.source, req.target)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoRebaseBranch,
+    wrap(rebaseBranchSchema, async (req) => {
+      await engine.rebaseBranch(req.path, req.branch, req.onto)
       return null
     })
   )

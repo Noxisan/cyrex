@@ -12,7 +12,17 @@
     "search": "Search",
     "undo": "Undo",
     "terminal": "Terminal",
-    "settings": "Settings"
+    "settings": "Settings",
+    "merge": "Merge",
+    "rebase": "Rebase"
+  },
+  "dnd": {
+    "merge": "Merge {{source}} into {{target}}",
+    "rebase": "Rebase {{source}} onto {{target}}",
+    "mergeTitle": "Merge branch",
+    "mergeMessage": "Merge {{source}} into {{target}}? This checks out {{target}} and merges {{source}} into it.",
+    "rebaseTitle": "Rebase branch",
+    "rebaseMessage": "Rebase {{source}} onto {{target}}? This rewrites {{source}}'s history by replaying its commits on top of {{target}} — recoverable via Undo (reflog)."
   },
   "terminal": {
     "title": "Terminal",

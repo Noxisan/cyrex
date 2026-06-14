@@ -67,6 +67,10 @@ export const IpcChannels = {
   RepoPush: 'repo:push',
   /** History operations (may stop on conflicts). */
   RepoMerge: 'repo:merge',
+  /** Drag-and-drop: merge one branch into another (checks out the target). */
+  RepoMergeBranch: 'repo:mergeBranch',
+  /** DESTRUCTIVE — drag-and-drop rebase of one branch onto another (rewrites history). */
+  RepoRebaseBranch: 'repo:rebaseBranch',
   RepoCherryPick: 'repo:cherryPick',
   RepoRevert: 'repo:revert',
   RepoContinueOp: 'repo:continueOperation',
@@ -237,6 +241,14 @@ export interface IpcApi {
   }
   [IpcChannels.RepoMerge]: {
     request: { path: string; ref: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoMergeBranch]: {
+    request: { path: string; source: string; target: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoRebaseBranch]: {
+    request: { path: string; branch: string; onto: string }
     response: EngineResult<null>
   }
   [IpcChannels.RepoCherryPick]: {

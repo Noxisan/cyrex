@@ -172,6 +172,16 @@ export const interactiveRebaseSchema = z.object({
 })
 
 export const mergeSchema = z.object({ path: z.string().min(1), ref: refName })
+export const mergeBranchSchema = z.object({
+  path: z.string().min(1),
+  source: refName,
+  target: refName
+})
+export const rebaseBranchSchema = z.object({
+  path: z.string().min(1),
+  branch: refName,
+  onto: refName
+})
 export const cherryPickSchema = z.object({ path: z.string().min(1), sha: refName })
 export const revertSchema = z.object({ path: z.string().min(1), sha: refName })
 
