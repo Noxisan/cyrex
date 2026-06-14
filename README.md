@@ -9,8 +9,9 @@ A calm, cross-platform visual Git client for Windows, Linux, and macOS. Cyrex tu
 <!-- Badges: build status, license, latest release, platforms. Wired once CI exists. -->
 Status: early development (0.1.0) · License: MIT · Platforms: Windows, Linux, macOS
 
-<!-- Hero screenshot of the commit graph goes here: docs/screenshots/graph.png -->
-_Hero screenshot (commit graph) to be added._
+<p align="center">
+  <img src="docs/screenshots/graph.png" alt="Cyrex commit graph view" width="900" />
+</p>
 
 ## Highlights
 
@@ -33,7 +34,23 @@ Until the first release, see Build from source below.
 
 ## Screenshots
 
-_Diff view, sidebar, and staging area screenshots to be added under `docs/screenshots/`._
+**Staging area** — stage by file, hunk, or line, with a Conventional Commit helper.
+
+<p align="center">
+  <img src="docs/screenshots/staging.png" alt="Staging area with staged, changed, and untracked files" width="320" />
+</p>
+
+**Diff view** — side-by-side or inline, syntax-highlighted, with per-hunk and per-line actions.
+
+<p align="center">
+  <img src="docs/screenshots/diff.png" alt="Syntax-highlighted diff view" width="820" />
+</p>
+
+**Sidebar** — repositories, branches, tags, stashes, worktrees, submodules, and Git LFS, with color dot markers.
+
+<p align="center">
+  <img src="docs/screenshots/sidebar.png" alt="Sidebar with branches, tags, and other refs" width="280" />
+</p>
 
 ## Feature matrix
 
