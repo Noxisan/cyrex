@@ -10,7 +10,8 @@ import {
   FolderGit2,
   Plus,
   Check,
-  Star
+  Star,
+  Trash2
 } from 'lucide-react'
 import { useRepoStore } from '../store/repoStore'
 import {
@@ -42,6 +43,19 @@ const LANE_COLORS = [
   'var(--color-lane-3)',
   'var(--color-lane-4)',
   'var(--color-lane-5)'
+]
+
+// Bright, saturated palette for user-chosen repository dots — deliberately more
+// vibrant than the muted graph lane colors so personal color codes pop.
+const DOT_COLORS = [
+  '#ff4d4d',
+  '#ff8a1e',
+  '#ffd21e',
+  '#3ddc5b',
+  '#16d6c4',
+  '#2e9bff',
+  '#9b6bff',
+  '#ff5cc0'
 ]
 
 function colorFor(name: string): string {
@@ -180,7 +194,7 @@ function ColorPopover({
   onPick: (color?: string) => void
   onClose: () => void
 }): React.JSX.Element {
-  const left = Math.min(x, window.innerWidth - 220)
+  const left = Math.min(x, window.innerWidth - 250)
   const top = Math.min(y, window.innerHeight - 60)
   return (
     <div className="fixed inset-0 z-50" onMouseDown={onClose}>
@@ -198,12 +212,12 @@ function ColorPopover({
         >
           {!current && <Check size={10} className="text-bg" strokeWidth={3} />}
         </button>
-        {LANE_COLORS.map((c) => (
+        {DOT_COLORS.map((c) => (
           <button
             key={c}
             type="button"
             onClick={() => onPick(c)}
-            className="size-4 rounded-full"
+            className="size-4 rounded-full transition-transform hover:scale-110"
             style={{ background: c, outline: current === c ? '2px solid var(--color-fg)' : undefined }}
           />
         ))}
@@ -247,24 +261,6 @@ export function Sidebar(): React.JSX.Element {
   const locals = branches.data?.filter((b) => b.kind === 'local') ?? []
   const remotes = branches.data?.filter((b) => b.kind === 'remote') ?? []
   const currentBranch = locals.find((b) => b.current)?.name ?? null
-
-  const repoMenu = (e: React.MouseEvent, r: { path: string; favorite?: boolean }): void => {
-    e.preventDefault()
-    const { clientX: x, clientY: y } = e
-    setMenu({
-      x,
-      y,
-      items: [
-        { label: t('repo.open'), onClick: () => setActive(r.path), disabled: r.path === activePath },
-        {
-          label: r.favorite ? t('repo.unfavorite') : t('repo.favorite'),
-          onClick: () => toggleFavorite(r.path)
-        },
-        { label: t('repo.setColor'), onClick: () => setColorPopover({ path: r.path, x, y }) },
-        { label: t('repo.remove'), danger: true, onClick: () => removeRepo(r.path) }
-      ]
-    })
-  }
 
   const localMenu = (e: React.MouseEvent, name: string, current: boolean): void => {
     e.preventDefault()
@@ -391,25 +387,54 @@ export function Sidebar(): React.JSX.Element {
           [...repos]
             .sort((a, b) => Number(!!b.favorite) - Number(!!a.favorite))
             .map((r) => (
-              <button
+              <div
                 key={r.path}
-                type="button"
-                onClick={() => setActive(r.path)}
-                onContextMenu={(e) => repoMenu(e, r)}
-                className={`group flex w-full items-center gap-2 px-3 py-1 ps-7 text-start text-xs hover:bg-surface-2 ${
+                className={`group flex items-center gap-2 px-3 py-1 ps-7 text-xs hover:bg-surface-2 ${
                   r.path === activePath ? 'text-accent' : 'text-fg'
                 }`}
-                title={`${r.path} — right-click for options`}
               >
-                <span
-                  className="size-2 shrink-0 rounded-full"
+                <button
+                  type="button"
+                  onClick={(e) => setColorPopover({ path: r.path, x: e.clientX, y: e.clientY })}
+                  title={t('repo.setColor')}
+                  className="size-2.5 shrink-0 rounded-full transition-transform hover:scale-125"
                   style={{ background: r.color ?? 'var(--color-fg-subtle)' }}
                 />
-                <span className="flex-1 truncate">{r.name}</span>
-                {r.favorite && (
-                  <Star size={11} strokeWidth={2} className="shrink-0 fill-accent text-accent" />
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActive(r.path)}
+                  title={r.path}
+                  className="min-w-0 flex-1 truncate text-start"
+                >
+                  {r.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(r.path)}
+                  title={r.favorite ? t('repo.unfavorite') : t('repo.favorite')}
+                  className={`shrink-0 transition-opacity ${
+                    r.favorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  }`}
+                >
+                  <Star
+                    size={12}
+                    strokeWidth={2}
+                    className={
+                      r.favorite
+                        ? 'fill-accent text-accent'
+                        : 'text-fg-subtle hover:text-accent'
+                    }
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeRepo(r.path)}
+                  title={t('repo.remove')}
+                  className="shrink-0 text-fg-subtle opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
+                >
+                  <Trash2 size={12} strokeWidth={2} />
+                </button>
+              </div>
             ))
         )}
       </Section>
