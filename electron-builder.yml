@@ -47,3 +47,6 @@ publish:
   provider: github
   owner: Noxisan
   repo: Cyrex
+  # Upload to the existing published release (default would target a draft and
+  # refuse when a non-draft release already exists for the tag).
+  releaseType: release
