@@ -71,6 +71,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Worktrees: list, add, open, remove | Done |
 | Submodules: list with status, init / update / sync, add | Done |
 | Git LFS awareness: tracked patterns, pointer vs. content, pull | Done |
+| Visual .gitignore editing with live match preview | Done |
 
 ## Supported languages
 

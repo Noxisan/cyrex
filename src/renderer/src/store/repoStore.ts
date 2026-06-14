@@ -79,6 +79,8 @@ interface RepoState {
   createTagTarget: string | null
   /** The Settings dialog. */
   settingsOpen: boolean
+  /** The visual .gitignore editor dialog. */
+  gitignoreOpen: boolean
   /** Resolved theme currently applied to the document. */
   theme: Theme
   /** The user's theme preference (system follows the OS). */
@@ -114,6 +116,8 @@ interface RepoState {
   closeCreateTag: () => void
   openSettings: () => void
   closeSettings: () => void
+  openGitignore: () => void
+  closeGitignore: () => void
   setThemeMode: (mode: ThemeMode) => void
   toggleTheme: () => void
   setAccent: (id: string) => void
@@ -196,6 +200,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   createRepoOpen: false,
   createTagTarget: null,
   settingsOpen: false,
+  gitignoreOpen: false,
   theme: resolveTheme(initialThemeMode()),
   themeMode: initialThemeMode(),
   accent: initialAccent().id,
@@ -274,6 +279,8 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   closeCreateTag: () => set({ createTagTarget: null }),
   openSettings: () => set({ settingsOpen: true }),
   closeSettings: () => set({ settingsOpen: false }),
+  openGitignore: () => set({ gitignoreOpen: true }),
+  closeGitignore: () => set({ gitignoreOpen: false }),
 
   setThemeMode: (mode) => {
     localStorage.setItem(THEME_MODE_KEY, mode)

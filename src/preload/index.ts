@@ -86,6 +86,13 @@ export const cyrexApi = {
   lfsPull: (path: string, file?: string) => invoke(IpcChannels.RepoLfsPull, { path, file }),
   lfsTrack: (path: string, pattern: string) =>
     invoke(IpcChannels.RepoLfsTrack, { path, pattern }),
+  readGitignore: (path: string) => invoke(IpcChannels.RepoReadGitignore, { path }),
+  writeGitignore: (path: string, content: string) =>
+    invoke(IpcChannels.RepoWriteGitignore, { path, content }),
+  previewIgnore: (path: string, content: string) =>
+    invoke(IpcChannels.RepoPreviewIgnore, { path, content }),
+  addIgnore: (path: string, pattern: string) =>
+    invoke(IpcChannels.RepoAddIgnore, { path, pattern }),
   fetch: (path: string) => invoke(IpcChannels.RepoFetch, { path }),
   pull: (path: string) => invoke(IpcChannels.RepoPull, { path }),
   push: (path: string, force?: boolean) => invoke(IpcChannels.RepoPush, { path, force }),

@@ -146,6 +146,22 @@
     "notInstalled": "git-lfs ist nicht installiert",
     "empty": "Keine verfolgten Dateien"
   },
+  "ignore": {
+    "title": ".gitignore bearbeiten",
+    "edit": ".gitignore bearbeiten…",
+    "rules": "Regeln",
+    "placeholder": "# ein Muster pro Zeile\n*.log\nnode_modules/\ndist/",
+    "preview": "Wird verborgen",
+    "matchCount_one": "{{count}} Datei",
+    "matchCount_other": "{{count}} Dateien",
+    "noMatches": "Keine unverfolgten Dateien entsprechen diesen Regeln.",
+    "hint": "Nur unverfolgte Dateien sind betroffen; verfolgte Dateien werden nie ignoriert.",
+    "save": "Speichern",
+    "added": "Zu .gitignore hinzugefügt",
+    "thisFile": "\"{{name}}\" ignorieren",
+    "thisExt": "\"{{ext}}\" ignorieren",
+    "thisFolder": "Ordner \"{{dir}}\" ignorieren"
+  },
   "settings": {
     "general": "Allgemein",
     "appearance": "Darstellung",

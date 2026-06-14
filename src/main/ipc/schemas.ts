@@ -315,6 +315,33 @@ export const lfsTrackSchema = z.object({
   pattern: safeArg(255)
 })
 
+// --- gitignore --------------------------------------------------------------
+
+// Full .gitignore text. Written to a file (never to argv), so only its size is
+// bounded here; git is the authority on pattern semantics.
+const gitignoreContent = z.string().max(1_000_000)
+
+// A single ignore pattern line: bounded, no newline or control characters so
+// one quick-add can never inject extra lines.
+const ignorePattern = z
+  .string()
+  .min(1)
+  .max(1000)
+  .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 0x20), 'invalid pattern')
+
+export const writeGitignoreSchema = z.object({
+  path: z.string().min(1),
+  content: gitignoreContent
+})
+export const previewIgnoreSchema = z.object({
+  path: z.string().min(1),
+  content: gitignoreContent
+})
+export const addIgnoreSchema = z.object({
+  path: z.string().min(1),
+  pattern: ignorePattern
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>

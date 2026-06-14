@@ -996,6 +996,59 @@ export async function worktreeRemove(
   await runGit(args, { cwd: repoPath })
 }
 
+// --- gitignore --------------------------------------------------------------
+//
+// Cyrex edits the repository-root `.gitignore` as plain text and offers a live
+// preview of what a set of rules would hide — computed by asking git itself
+// (`ls-files --others --ignored --exclude-from`) against the edited content via
+// a scratch file, so the preview reflects real git matching, not a guess.
+
+/** Read the root `.gitignore`, or an empty string if it does not exist. */
+export async function readGitignore(repoPath: string): Promise<string> {
+  const file = join(repoPath, '.gitignore')
+  if (!existsSync(file)) return ''
+  return readFile(file, 'utf8')
+}
+
+/** Write the root `.gitignore` (normalizing to a single trailing newline). */
+export async function writeGitignore(repoPath: string, content: string): Promise<void> {
+  const normalized = content.replace(/\s*$/, '') + '\n'
+  await writeFile(join(repoPath, '.gitignore'), normalized)
+}
+
+/**
+ * The untracked files that the given `.gitignore` content would ignore. Computed
+ * by git against a scratch exclude file, so it matches real ignore semantics
+ * (only untracked files are affected — tracked files are never ignored).
+ */
+export async function previewIgnore(repoPath: string, content: string): Promise<string[]> {
+  const scratch = join(await gitDir(repoPath), 'cyrex-ignore-preview')
+  await writeFile(scratch, content.endsWith('\n') ? content : content + '\n')
+  try {
+    const { stdout } = await runGit(
+      ['ls-files', '--others', '--ignored', '-z', `--exclude-from=${scratch}`],
+      { cwd: repoPath }
+    )
+    return stdout.split('\0').filter(Boolean)
+  } finally {
+    await rm(scratch, { force: true })
+  }
+}
+
+/**
+ * Append a single pattern to the root `.gitignore` (creating it if needed),
+ * skipping it when an identical line already exists. Used by the "Ignore this…"
+ * actions in the changes list.
+ */
+export async function addToGitignore(repoPath: string, pattern: string): Promise<void> {
+  const current = await readGitignore(repoPath)
+  const lines = current.split('\n').map((l) => l.trim())
+  if (lines.includes(pattern.trim())) return
+  const base = current.replace(/\s*$/, '')
+  const next = (base ? base + '\n' : '') + pattern.trim() + '\n'
+  await writeFile(join(repoPath, '.gitignore'), next)
+}
+
 // --- submodules -------------------------------------------------------------
 //
 // Cyrex reflects submodules as the nested repositories they are. Listing merges

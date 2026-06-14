@@ -187,6 +187,7 @@ function useRepoMutation<TVars, TData = unknown>(
         'worktrees',
         'submodules',
         'lfs',
+        'gitignore',
         'reflog',
         'conflict',
         'commitContext'
@@ -347,6 +348,31 @@ export function useLfsPull(path: string) {
 
 export function useLfsTrack(path: string) {
   return useRepoMutation((pattern: string) => window.cyrex.lfsTrack(path, pattern))
+}
+
+export function useGitignore(path: string | null, enabled = true) {
+  return useQuery({
+    queryKey: ['gitignore', path],
+    enabled: !!path && enabled,
+    queryFn: async () => unwrap(await window.cyrex.readGitignore(path!))
+  })
+}
+
+export function useIgnorePreview(path: string | null, content: string, enabled = true) {
+  return useQuery({
+    queryKey: ['ignorePreview', path, content],
+    enabled: !!path && enabled,
+    queryFn: async () => unwrap(await window.cyrex.previewIgnore(path!, content))
+  })
+}
+
+export function useWriteGitignore(path: string) {
+  return useRepoMutation((content: string) => window.cyrex.writeGitignore(path, content))
+}
+
+export function useAddIgnore(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation((pattern: string) => window.cyrex.addIgnore(path, pattern), t('ignore.added'))
 }
 
 export function useFetch(path: string) {

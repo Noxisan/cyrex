@@ -146,6 +146,22 @@
     "notInstalled": "git-lfs is not installed",
     "empty": "No tracked files"
   },
+  "ignore": {
+    "title": "Edit .gitignore",
+    "edit": "Edit .gitignore…",
+    "rules": "Rules",
+    "placeholder": "# one pattern per line\n*.log\nnode_modules/\ndist/",
+    "preview": "Would hide",
+    "matchCount_one": "{{count}} file",
+    "matchCount_other": "{{count}} files",
+    "noMatches": "No untracked files match these rules.",
+    "hint": "Only untracked files are affected; tracked files are never ignored.",
+    "save": "Save",
+    "added": "Added to .gitignore",
+    "thisFile": "Ignore \"{{name}}\"",
+    "thisExt": "Ignore \"{{ext}}\"",
+    "thisFolder": "Ignore folder \"{{dir}}\""
+  },
   "settings": {
     "general": "General",
     "appearance": "Appearance",

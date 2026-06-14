@@ -14,6 +14,7 @@ import * as engine from '../git/engine'
 import * as hosting from '../hosting/service'
 import { scrubSecrets } from '../git/cli'
 import {
+  addIgnoreSchema,
   applyPartialSchema,
   cloneSchema,
   hostingConnectTokenSchema,
@@ -40,6 +41,7 @@ import {
   logSchema,
   mergeBranchSchema,
   mergeSchema,
+  previewIgnoreSchema,
   pushSchema,
   rebaseBranchSchema,
   rebaseCommitsSchema,
@@ -56,6 +58,7 @@ import {
   submoduleSyncSchema,
   submoduleUpdateSchema,
   workingDiffSchema,
+  writeGitignoreSchema,
   worktreeAddSchema,
   worktreeRemoveSchema
 } from './schemas'
@@ -364,6 +367,32 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoLfsTrack,
     wrap(lfsTrackSchema, async (req) => {
       await engine.lfsTrack(req.path, req.pattern)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoReadGitignore,
+    wrap(repoPathSchema, (req) => engine.readGitignore(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoWriteGitignore,
+    wrap(writeGitignoreSchema, async (req) => {
+      await engine.writeGitignore(req.path, req.content)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoPreviewIgnore,
+    wrap(previewIgnoreSchema, (req) => engine.previewIgnore(req.path, req.content))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoAddIgnore,
+    wrap(addIgnoreSchema, async (req) => {
+      await engine.addToGitignore(req.path, req.pattern)
       return null
     })
   )

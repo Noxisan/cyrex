@@ -87,6 +87,11 @@ export const IpcChannels = {
   RepoLfsStatus: 'repo:lfsStatus',
   RepoLfsPull: 'repo:lfsPull',
   RepoLfsTrack: 'repo:lfsTrack',
+  /** Visual .gitignore editing: read, write, live preview, quick-add a pattern. */
+  RepoReadGitignore: 'repo:readGitignore',
+  RepoWriteGitignore: 'repo:writeGitignore',
+  RepoPreviewIgnore: 'repo:previewIgnore',
+  RepoAddIgnore: 'repo:addIgnore',
   /** Network operations (credentials handled by the system git). */
   RepoFetch: 'repo:fetch',
   RepoPull: 'repo:pull',
@@ -344,6 +349,22 @@ export interface IpcApi {
     response: EngineResult<null>
   }
   [IpcChannels.RepoLfsTrack]: {
+    request: { path: string; pattern: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoReadGitignore]: {
+    request: { path: string }
+    response: EngineResult<string>
+  }
+  [IpcChannels.RepoWriteGitignore]: {
+    request: { path: string; content: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoPreviewIgnore]: {
+    request: { path: string; content: string }
+    response: EngineResult<string[]>
+  }
+  [IpcChannels.RepoAddIgnore]: {
     request: { path: string; pattern: string }
     response: EngineResult<null>
   }

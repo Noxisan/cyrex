@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Minus, Undo2, Check } from 'lucide-react'
+import { Plus, Minus, Undo2, Check, EyeOff } from 'lucide-react'
 import type { FileStatus } from '@shared/types'
 import { useRepoStore } from '../store/repoStore'
 import {
+  useAddIgnore,
   useApplyPartial,
   useDiscard,
   useStage,
@@ -14,6 +15,8 @@ import {
 import { DiffPanel } from './DiffPanel'
 import { CommitBox } from './CommitBox'
 import { ConflictEditor } from './ConflictEditor'
+import { ContextMenu } from './ContextMenu'
+import type { MenuState } from './ContextMenu'
 
 const STATUS_LABEL: Record<string, string> = {
   added: 'A',
@@ -54,13 +57,15 @@ function FileRow({
   selected,
   onSelect,
   onPrimary,
-  onDiscard
+  onDiscard,
+  onContextMenu
 }: {
   row: Row
   selected: boolean
   onSelect: () => void
   onPrimary: () => void
   onDiscard?: () => void
+  onContextMenu?: (e: React.MouseEvent) => void
 }): React.JSX.Element {
   const [confirming, setConfirming] = useState(false)
   const code = row.untracked
@@ -71,6 +76,7 @@ function FileRow({
 
   return (
     <div
+      onContextMenu={onContextMenu}
       className={`group flex items-center gap-1.5 px-2 py-1 text-xs hover:bg-surface-2 ${
         selected ? 'bg-surface-2' : ''
       }`}
@@ -150,11 +156,39 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
   const { data: status } = useStatus(repoPath)
   const selectedFile = useRepoStore((s) => s.selectedFile)
   const selectFile = useRepoStore((s) => s.selectFile)
+  const openGitignore = useRepoStore((s) => s.openGitignore)
 
   const stage = useStage(repoPath)
   const unstage = useUnstage(repoPath)
   const discard = useDiscard(repoPath)
   const applyPartial = useApplyPartial(repoPath)
+  const addIgnore = useAddIgnore(repoPath)
+
+  const [menu, setMenu] = useState<MenuState | null>(null)
+
+  // Right-click ignore menu. Untracked files offer quick patterns (this file,
+  // its extension, its folder); every row can open the full .gitignore editor.
+  const ignoreMenu = (e: React.MouseEvent, row: Row): void => {
+    e.preventDefault()
+    const p = row.file.path
+    const base = p.split('/').pop() ?? p
+    const dot = base.lastIndexOf('.')
+    const slash = p.lastIndexOf('/')
+    const items = []
+    if (row.untracked) {
+      items.push({ label: t('ignore.thisFile', { name: base }), onClick: () => addIgnore.mutate(p) })
+      if (dot > 0) {
+        const ext = `*${base.slice(dot)}`
+        items.push({ label: t('ignore.thisExt', { ext }), onClick: () => addIgnore.mutate(ext) })
+      }
+      if (slash > 0) {
+        const dir = `${p.slice(0, slash)}/`
+        items.push({ label: t('ignore.thisFolder', { dir }), onClick: () => addIgnore.mutate(dir) })
+      }
+    }
+    items.push({ label: t('ignore.edit'), onClick: () => openGitignore() })
+    setMenu({ x: e.clientX, y: e.clientY, items })
+  }
 
   const diff = useWorkingDiff(
     repoPath,
@@ -215,6 +249,7 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
                 selected={isSelected(r)}
                 onSelect={() => select(r)}
                 onPrimary={() => unstage.mutate(r.file.path)}
+                onContextMenu={(e) => ignoreMenu(e, r)}
               />
             ))
           )}
@@ -223,15 +258,26 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
             label={t('status.unstaged')}
             count={unstagedRows.length}
             action={
-              unstagedRows.length > 0 && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => unstagedRows.forEach((r) => stage.mutate(r.file.path))}
-                  className="text-[10px] text-fg-muted hover:text-accent"
+                  onClick={() => openGitignore()}
+                  title={t('ignore.edit')}
+                  aria-label={t('ignore.edit')}
+                  className="text-fg-muted hover:text-accent"
                 >
-                  {t('changes.stageAll')}
+                  <EyeOff size={13} strokeWidth={1.75} />
                 </button>
-              )
+                {unstagedRows.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => unstagedRows.forEach((r) => stage.mutate(r.file.path))}
+                    className="text-[10px] text-fg-muted hover:text-accent"
+                  >
+                    {t('changes.stageAll')}
+                  </button>
+                )}
+              </div>
             }
           />
           {unstagedRows.length === 0 ? (
@@ -245,6 +291,7 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
                 onSelect={() => select(r)}
                 onPrimary={() => stage.mutate(r.file.path)}
                 onDiscard={() => discard.mutate({ file: r.file.path, untracked: r.untracked })}
+                onContextMenu={(e) => ignoreMenu(e, r)}
               />
             ))
           )}
@@ -290,6 +337,8 @@ export function ChangesView({ repoPath }: { repoPath: string }): React.JSX.Eleme
           </div>
         )}
       </div>
+
+      <ContextMenu state={menu} onClose={() => setMenu(null)} />
     </div>
   )
 }

@@ -19,6 +19,7 @@ import { OpenRepoDialog } from './components/OpenRepoDialog'
 import { CreateRepoDialog } from './components/CreateRepoDialog'
 import { CreateTagDialog } from './components/CreateTagDialog'
 import { SettingsDialog } from './components/SettingsDialog'
+import { GitignoreDialog } from './components/GitignoreDialog'
 
 export function App(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
@@ -61,6 +62,7 @@ export function App(): React.JSX.Element {
       <CreateRepoDialog />
       <CreateTagDialog />
       <SettingsDialog />
+      <GitignoreDialog />
       <Toasts />
     </div>
   )
