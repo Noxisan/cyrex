@@ -5,7 +5,7 @@
  */
 
 import { contextBridge, ipcRenderer } from 'electron'
-import { IpcChannels, TerminalChannels } from '@shared/ipc'
+import { IpcChannels, TerminalChannels, WindowChannels } from '@shared/ipc'
 import type { IpcApi } from '@shared/ipc'
 import type {
   HostingProviderId,
@@ -121,6 +121,22 @@ export const cyrexApi = {
       accountId: string,
       input: { name: string; description?: string; private: boolean }
     ) => invoke(IpcChannels.HostingCreateRepo, { accountId, ...input })
+  },
+
+  /**
+   * Custom-titlebar window controls (frameless window). No secrets, no payload —
+   * just min/maximize/close plus a maximized-state query and subscription.
+   */
+  windowControls: {
+    minimize: (): Promise<void> => ipcRenderer.invoke(WindowChannels.Minimize),
+    maximizeToggle: (): Promise<boolean> => ipcRenderer.invoke(WindowChannels.MaximizeToggle),
+    close: (): Promise<void> => ipcRenderer.invoke(WindowChannels.Close),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke(WindowChannels.IsMaximized),
+    onMaximizeChange: (cb: (isMax: boolean) => void): (() => void) => {
+      const listener = (_e: unknown, isMax: boolean): void => cb(isMax)
+      ipcRenderer.on(WindowChannels.MaximizeChanged, listener)
+      return () => ipcRenderer.removeListener(WindowChannels.MaximizeChanged, listener)
+    }
   },
 
   /**

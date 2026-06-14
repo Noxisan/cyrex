@@ -142,6 +142,20 @@ export const TerminalChannels = {
   Exit: 'terminal:exit'
 } as const
 
+/**
+ * Custom-titlebar window controls (the window is frameless). Parameterless
+ * commands plus a query and a main→renderer push so the maximize/restore button
+ * stays in sync with the real window state.
+ */
+export const WindowChannels = {
+  Minimize: 'window:minimize',
+  MaximizeToggle: 'window:maximizeToggle',
+  Close: 'window:close',
+  IsMaximized: 'window:isMaximized',
+  /** main→renderer: emitted on maximize/unmaximize with the new boolean. */
+  MaximizeChanged: 'window:maximizeChanged'
+} as const
+
 export interface EngineInfo {
   backend: 'cli' | 'nodegit'
   /** e.g. "git version 2.54.0" */

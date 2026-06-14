@@ -1,8 +1,9 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, Menu, nativeImage, session, shell, Tray } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, session, shell, Tray } from 'electron'
 // The full mark used for the OS window/taskbar icon and the system tray. The
 // in-app custom titlebar draws its own (square) mark in the renderer.
 import appIcon from '../../build/icon.png?asset'
+import { WindowChannels } from '@shared/ipc'
 import { registerIpcHandlers } from './ipc'
 import { registerTerminalHandlers } from './terminal'
 
@@ -78,6 +79,13 @@ function createWindow(): void {
     mainWindow = null
   })
 
+  // Keep the custom titlebar's maximize/restore button in sync with reality
+  // (the window can also be maximized via DE snapping / double-click).
+  const emitMaximized = (): void =>
+    win.webContents.send(WindowChannels.MaximizeChanged, win.isMaximized())
+  win.on('maximize', emitMaximized)
+  win.on('unmaximize', emitMaximized)
+
   // Open all external links in the system browser; never inside the app.
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('http:') || url.startsWith('https:')) {
@@ -139,6 +147,30 @@ function createTray(): void {
   }
 }
 
+/**
+ * Window-control IPC for the custom frameless titlebar. Each command acts on the
+ * BrowserWindow that owns the calling renderer, so it stays correct if the window
+ * is ever recreated. Close routes through the normal `close` handler (hide to
+ * tray); there is no payload, so no zod validation is required.
+ */
+function registerWindowHandlers(): void {
+  ipcMain.handle(WindowChannels.Minimize, (e) =>
+    BrowserWindow.fromWebContents(e.sender)?.minimize()
+  )
+  ipcMain.handle(WindowChannels.MaximizeToggle, (e) => {
+    const win = BrowserWindow.fromWebContents(e.sender)
+    if (!win) return false
+    if (win.isMaximized()) win.unmaximize()
+    else win.maximize()
+    return win.isMaximized()
+  })
+  ipcMain.handle(WindowChannels.Close, (e) => BrowserWindow.fromWebContents(e.sender)?.close())
+  ipcMain.handle(
+    WindowChannels.IsMaximized,
+    (e) => BrowserWindow.fromWebContents(e.sender)?.isMaximized() ?? false
+  )
+}
+
 app.whenReady().then(() => {
   // Apply CSP to every response from the default session.
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -155,6 +187,7 @@ app.whenReady().then(() => {
 
   registerIpcHandlers()
   registerTerminalHandlers()
+  registerWindowHandlers()
   createWindow()
   createTray()
 
