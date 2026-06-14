@@ -64,7 +64,9 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Command palette (Cmd/Ctrl+K) | Done |
 | Drag-and-drop branch merge / rebase | Done |
 | Hosting integration: GitHub (browse / clone / create / link) | Done |
-| Hosting integration: GitLab, Bitbucket | Planned |
+| Hosting integration: GitLab (device flow + token) | Done |
+| Hosting integration: Bitbucket (app password) | Done |
+| Settings: theme (light / dark / system), accent palettes, shortcuts | Done |
 
 ## Supported languages
 
