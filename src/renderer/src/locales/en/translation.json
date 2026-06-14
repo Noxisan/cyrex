@@ -88,6 +88,25 @@
     "cancel": "Cancel",
     "create": "Create"
   },
+  "settings": {
+    "general": "General",
+    "appearance": "Appearance",
+    "shortcuts": "Shortcuts",
+    "language": "Language",
+    "startView": "Open repositories in",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "accent": "Accent color",
+    "accentHint": "Used for active branches, primary buttons, links and selection. Diff, conflict and danger colors stay fixed.",
+    "shortcut": {
+      "goHistory": "Go to History",
+      "goChanges": "Go to Changes",
+      "commit": "Commit (in message box)",
+      "dismiss": "Close dialog / clear search"
+    }
+  },
   "repo": {
     "open": "Open",
     "favorite": "Add to favorites",

@@ -17,6 +17,7 @@ import { TerminalPanel } from './components/TerminalPanel'
 import { CommandPalette } from './components/CommandPalette'
 import { OpenRepoDialog } from './components/OpenRepoDialog'
 import { CreateRepoDialog } from './components/CreateRepoDialog'
+import { SettingsDialog } from './components/SettingsDialog'
 
 export function App(): React.JSX.Element {
   const activePath = useRepoStore((s) => s.activePath)
@@ -57,6 +58,7 @@ export function App(): React.JSX.Element {
       <CommandPalette />
       <OpenRepoDialog />
       <CreateRepoDialog />
+      <SettingsDialog />
       <Toasts />
     </div>
   )

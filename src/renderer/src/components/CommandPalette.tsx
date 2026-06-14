@@ -12,6 +12,7 @@ import {
   History,
   Moon,
   RefreshCw,
+  SlidersHorizontal,
   TerminalSquare,
   Undo2
 } from 'lucide-react'
@@ -63,6 +64,7 @@ export function CommandPalette(): React.JSX.Element | null {
   const openReflog = useRepoStore((s) => s.openReflog)
   const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
   const toggleTheme = useRepoStore((s) => s.toggleTheme)
+  const openSettings = useRepoStore((s) => s.openSettings)
   const addRepo = useRepoStore((s) => s.addRepo)
 
   const { data: branches } = useBranches(activePath)
@@ -183,6 +185,7 @@ export function CommandPalette(): React.JSX.Element | null {
       )
     }
     list.push({ id: 'theme', group: view, label: t('palette.toggleTheme'), icon: Moon, keywords: 'dark light', run: toggleTheme })
+    list.push({ id: 'settings', group: view, label: t('actions.settings'), icon: SlidersHorizontal, keywords: 'preferences appearance theme accent language shortcuts', run: openSettings })
     if (hasRepo) {
       list.push({
         id: 'terminal',

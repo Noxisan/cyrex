@@ -88,6 +88,25 @@
     "cancel": "Abbrechen",
     "create": "Erstellen"
   },
+  "settings": {
+    "general": "Allgemein",
+    "appearance": "Darstellung",
+    "shortcuts": "Tastenkürzel",
+    "language": "Sprache",
+    "startView": "Repositorys öffnen in",
+    "theme": "Design",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "themeSystem": "System",
+    "accent": "Akzentfarbe",
+    "accentHint": "Für aktive Branches, primäre Schaltflächen, Links und Auswahl. Diff-, Konflikt- und Gefahrenfarben bleiben unverändert.",
+    "shortcut": {
+      "goHistory": "Zur Historie",
+      "goChanges": "Zu Änderungen",
+      "commit": "Commit (im Nachrichtenfeld)",
+      "dismiss": "Dialog schließen / Suche leeren"
+    }
+  },
   "repo": {
     "open": "Öffnen",
     "favorite": "Zu Favoriten hinzufügen",

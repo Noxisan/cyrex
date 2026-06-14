@@ -7,8 +7,34 @@
 import { create } from 'zustand'
 import type { RepoRef } from '@shared/types'
 
+/** The resolved, applied theme (what `data-theme` is set to). */
 export type Theme = 'dark' | 'light'
+/** The user's theme preference; `system` follows the OS. */
+export type ThemeMode = 'dark' | 'light' | 'system'
 export type ViewMode = 'history' | 'changes'
+
+/**
+ * An accent palette. Only the brand/interactive accent is themed here — danger,
+ * diff and conflict colors stay fixed so meaning never blurs (CLAUDE.md §7).
+ */
+export interface AccentPalette {
+  id: string
+  label: string
+  accent: string
+  hover: string
+}
+
+/** Curated accent choices (crimson is the Cyrex default and stays first). */
+export const ACCENTS: AccentPalette[] = [
+  { id: 'crimson', label: 'Crimson', accent: '#f7374f', hover: '#ff4d63' },
+  { id: 'ember', label: 'Ember', accent: '#ff5722', hover: '#ff7043' },
+  { id: 'amber', label: 'Amber', accent: '#f5a524', hover: '#ffb84d' },
+  { id: 'emerald', label: 'Emerald', accent: '#2ecc71', hover: '#46d784' },
+  { id: 'teal', label: 'Teal', accent: '#16c5b4', hover: '#2ad8c6' },
+  { id: 'azure', label: 'Azure', accent: '#3b82f6', hover: '#5a97ff' },
+  { id: 'violet', label: 'Violet', accent: '#8b5cf6', hover: '#a07bff' },
+  { id: 'magenta', label: 'Magenta', accent: '#e0529c', hover: '#ec6fb0' }
+]
 
 /**
  * A repo in the sidebar list. Extends the engine's RepoRef with renderer-only
@@ -49,7 +75,16 @@ interface RepoState {
   /** The unified Open Repository modal (local repos left, remote accounts right). */
   openRepoOpen: boolean
   createRepoOpen: boolean
+  /** The Settings dialog. */
+  settingsOpen: boolean
+  /** Resolved theme currently applied to the document. */
   theme: Theme
+  /** The user's theme preference (system follows the OS). */
+  themeMode: ThemeMode
+  /** Selected accent palette id (see ACCENTS). */
+  accent: string
+  /** Which view a repository opens into. */
+  defaultView: ViewMode
 
   addRepo: (repo: RepoRef) => void
   removeRepo: (path: string) => void
@@ -73,12 +108,19 @@ interface RepoState {
   closeRepoModal: () => void
   openCreateRepo: () => void
   closeCreateRepo: () => void
-  setTheme: (theme: Theme) => void
+  openSettings: () => void
+  closeSettings: () => void
+  setThemeMode: (mode: ThemeMode) => void
   toggleTheme: () => void
+  setAccent: (id: string) => void
+  setDefaultView: (view: ViewMode) => void
 }
 
 const REPOS_KEY = 'cyrex.repos'
 const THEME_KEY = 'cyrex.theme'
+const THEME_MODE_KEY = 'cyrex.themeMode'
+const ACCENT_KEY = 'cyrex.accent'
+const DEFAULT_VIEW_KEY = 'cyrex.defaultView'
 
 function loadRepos(): RepoEntry[] {
   try {
@@ -93,14 +135,44 @@ function saveRepos(repos: RepoEntry[]): void {
   localStorage.setItem(REPOS_KEY, JSON.stringify(repos))
 }
 
-function initialTheme(): Theme {
-  const stored = localStorage.getItem(THEME_KEY)
-  if (stored === 'light' || stored === 'dark') return stored
-  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+function systemPrefersLight(): boolean {
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ?? false
+}
+
+/** Resolve a preference to the concrete theme to apply. */
+function resolveTheme(mode: ThemeMode): Theme {
+  if (mode === 'system') return systemPrefersLight() ? 'light' : 'dark'
+  return mode
+}
+
+function initialThemeMode(): ThemeMode {
+  const stored = localStorage.getItem(THEME_MODE_KEY)
+  if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+  // Migrate a legacy explicit dark/light choice; otherwise follow the OS.
+  const legacy = localStorage.getItem(THEME_KEY)
+  if (legacy === 'light' || legacy === 'dark') return legacy
+  return 'system'
+}
+
+function initialAccent(): AccentPalette {
+  const id = localStorage.getItem(ACCENT_KEY)
+  return ACCENTS.find((a) => a.id === id) ?? ACCENTS[0]
+}
+
+function initialDefaultView(): ViewMode {
+  return localStorage.getItem(DEFAULT_VIEW_KEY) === 'changes' ? 'changes' : 'history'
 }
 
 export function applyTheme(theme: Theme): void {
   document.documentElement.setAttribute('data-theme', theme)
+}
+
+/** Override the accent CSS variables (the rest of the palette is fixed). */
+export function applyAccent(id: string): void {
+  const p = ACCENTS.find((a) => a.id === id) ?? ACCENTS[0]
+  const root = document.documentElement
+  root.style.setProperty('--color-accent', p.accent)
+  root.style.setProperty('--color-accent-hover', p.hover)
 }
 
 export const useRepoStore = create<RepoState>((set, get) => ({
@@ -118,7 +190,11 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   paletteOpen: false,
   openRepoOpen: false,
   createRepoOpen: false,
-  theme: initialTheme(),
+  settingsOpen: false,
+  theme: resolveTheme(initialThemeMode()),
+  themeMode: initialThemeMode(),
+  accent: initialAccent().id,
+  defaultView: initialDefaultView(),
 
   addRepo: (repo) =>
     set((s) => {
@@ -127,7 +203,13 @@ export const useRepoStore = create<RepoState>((set, get) => ({
       const entry: RepoEntry = { ...repo, favorite: prev?.favorite, color: prev?.color }
       const repos = [entry, ...s.repos.filter((r) => r.path !== repo.path)]
       saveRepos(repos)
-      return { repos, activePath: repo.path, selectedSha: null, selectedFile: null }
+      return {
+        repos,
+        activePath: repo.path,
+        selectedSha: null,
+        selectedFile: null,
+        viewMode: s.defaultView
+      }
     }),
 
   removeRepo: (path) =>
@@ -156,15 +238,16 @@ export const useRepoStore = create<RepoState>((set, get) => ({
     }),
 
   setActive: (path) =>
-    set({
+    set((s) => ({
       activePath: path,
+      viewMode: s.defaultView,
       selectedSha: null,
       selectedFile: null,
       inspectorFile: null,
       searchQuery: '',
       reflogOpen: false,
       rebaseBase: null
-    }),
+    })),
   selectCommit: (sha) => set({ selectedSha: sha }),
   setViewMode: (mode) => set({ viewMode: mode }),
   selectFile: (file) => set({ selectedFile: file }),
@@ -182,12 +265,38 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   closeRepoModal: () => set({ openRepoOpen: false }),
   openCreateRepo: () => set({ createRepoOpen: true }),
   closeCreateRepo: () => set({ createRepoOpen: false }),
+  openSettings: () => set({ settingsOpen: true }),
+  closeSettings: () => set({ settingsOpen: false }),
 
-  setTheme: (theme) => {
-    localStorage.setItem(THEME_KEY, theme)
+  setThemeMode: (mode) => {
+    localStorage.setItem(THEME_MODE_KEY, mode)
+    const theme = resolveTheme(mode)
     applyTheme(theme)
-    set({ theme })
+    set({ themeMode: mode, theme })
   },
 
-  toggleTheme: () => get().setTheme(get().theme === 'dark' ? 'light' : 'dark')
+  // Quick toggle (topbar / palette): pick an explicit mode opposite to current.
+  toggleTheme: () => get().setThemeMode(get().theme === 'dark' ? 'light' : 'dark'),
+
+  setAccent: (id) => {
+    localStorage.setItem(ACCENT_KEY, id)
+    applyAccent(id)
+    set({ accent: id })
+  },
+
+  setDefaultView: (view) => {
+    localStorage.setItem(DEFAULT_VIEW_KEY, view)
+    set({ defaultView: view })
+  }
 }))
+
+// When following the OS theme, react to live changes (e.g. day/night switch).
+window
+  .matchMedia?.('(prefers-color-scheme: light)')
+  .addEventListener?.('change', () => {
+    const { themeMode } = useRepoStore.getState()
+    if (themeMode !== 'system') return
+    const theme = resolveTheme('system')
+    applyTheme(theme)
+    useRepoStore.setState({ theme })
+  })

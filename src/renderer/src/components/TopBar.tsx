@@ -61,6 +61,7 @@ export function TopBar(): React.JSX.Element {
   const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
   const togglePalette = useRepoStore((s) => s.togglePalette)
   const openRepoModal = useRepoStore((s) => s.openRepoModal)
+  const openSettings = useRepoStore((s) => s.openSettings)
   const stashSave = useStashSave(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
@@ -169,7 +170,7 @@ export function TopBar(): React.JSX.Element {
       </button>
       <LanguageSwitcher />
       <ThemeToggle />
-      <ToolButton label={t('actions.settings')} icon={Settings} />
+      <ToolButton label={t('actions.settings')} icon={Settings} onClick={openSettings} />
 
       <PromptDialog state={prompt} onClose={() => setPrompt(null)} />
       <ContextMenu state={menu} onClose={() => setMenu(null)} />
