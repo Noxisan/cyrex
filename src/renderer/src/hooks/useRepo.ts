@@ -185,6 +185,8 @@ function useRepoMutation<TVars, TData = unknown>(
         'tags',
         'stashes',
         'worktrees',
+        'submodules',
+        'lfs',
         'reflog',
         'conflict',
         'commitContext'
@@ -290,6 +292,61 @@ export function useWorktreeRemove(path: string) {
   return useRepoMutation((v: { worktreePath: string; force?: boolean }) =>
     window.cyrex.worktreeRemove(path, v.worktreePath, v.force)
   )
+}
+
+export function useSubmodules(path: string | null) {
+  return useQuery({
+    queryKey: ['submodules', path],
+    enabled: !!path,
+    queryFn: async () => unwrap(await window.cyrex.submodules(path!))
+  })
+}
+
+export function useSubmoduleUpdate(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation(
+    (v: { subPath: string; init?: boolean }) =>
+      window.cyrex.submoduleUpdate(path, v.subPath, v.init),
+    t('submodule.updated')
+  )
+}
+
+export function useSubmoduleUpdateAll(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation(() => window.cyrex.submoduleUpdateAll(path), t('submodule.updated'))
+}
+
+export function useSubmoduleSync(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation(
+    (subPath?: string) => window.cyrex.submoduleSync(path, subPath),
+    t('submodule.synced')
+  )
+}
+
+export function useSubmoduleAdd(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation(
+    (v: { url: string; subPath: string }) => window.cyrex.submoduleAdd(path, v.url, v.subPath),
+    t('submodule.added')
+  )
+}
+
+export function useLfsStatus(path: string | null) {
+  return useQuery({
+    queryKey: ['lfs', path],
+    enabled: !!path,
+    queryFn: async () => unwrap(await window.cyrex.lfsStatus(path!))
+  })
+}
+
+export function useLfsPull(path: string) {
+  const { t } = useTranslation()
+  return useRepoMutation((file?: string) => window.cyrex.lfsPull(path, file), t('lfs.pulled'))
+}
+
+export function useLfsTrack(path: string) {
+  return useRepoMutation((pattern: string) => window.cyrex.lfsTrack(path, pattern))
 }
 
 export function useFetch(path: string) {

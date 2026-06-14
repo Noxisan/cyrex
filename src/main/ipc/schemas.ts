@@ -278,6 +278,43 @@ export const worktreeRemoveSchema = z.object({
   force: z.boolean().optional()
 })
 
+// --- submodules & LFS -------------------------------------------------------
+
+// A bounded, control-char-free, non-flag string. git/git-lfs remain the final
+// authority; this just stops a hostile payload from smuggling an option or NUL.
+function safeArg(max: number): z.ZodType<string> {
+  return z
+    .string()
+    .min(1)
+    .max(max)
+    .refine((s) => ![...s].some((c) => c.charCodeAt(0) < 0x20), 'invalid value')
+    .refine((s) => !s.startsWith('-'), 'invalid value')
+}
+
+export const submoduleUpdateSchema = z.object({
+  path: z.string().min(1),
+  subPath: relFile,
+  init: z.boolean().optional()
+})
+export const submoduleSyncSchema = z.object({
+  path: z.string().min(1),
+  subPath: relFile.optional()
+})
+export const submoduleAddSchema = z.object({
+  path: z.string().min(1),
+  url: safeArg(2048),
+  subPath: relFile
+})
+
+export const lfsPullSchema = z.object({
+  path: z.string().min(1),
+  file: relFile.optional()
+})
+export const lfsTrackSchema = z.object({
+  path: z.string().min(1),
+  pattern: safeArg(255)
+})
+
 export type RepoPathRequest = z.infer<typeof repoPathSchema>
 export type LogRequest = z.infer<typeof logSchema>
 export type CommitDiffRequest = z.infer<typeof commitDiffSchema>

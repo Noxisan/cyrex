@@ -74,6 +74,18 @@ export const cyrexApi = {
     invoke(IpcChannels.RepoWorktreeAdd, { path, parentDir, name, ref, newBranch }),
   worktreeRemove: (path: string, worktreePath: string, force?: boolean) =>
     invoke(IpcChannels.RepoWorktreeRemove, { path, worktreePath, force }),
+  submodules: (path: string) => invoke(IpcChannels.RepoSubmodules, { path }),
+  submoduleUpdate: (path: string, subPath: string, init?: boolean) =>
+    invoke(IpcChannels.RepoSubmoduleUpdate, { path, subPath, init }),
+  submoduleUpdateAll: (path: string) => invoke(IpcChannels.RepoSubmoduleUpdateAll, { path }),
+  submoduleSync: (path: string, subPath?: string) =>
+    invoke(IpcChannels.RepoSubmoduleSync, { path, subPath }),
+  submoduleAdd: (path: string, url: string, subPath: string) =>
+    invoke(IpcChannels.RepoSubmoduleAdd, { path, url, subPath }),
+  lfsStatus: (path: string) => invoke(IpcChannels.RepoLfsStatus, { path }),
+  lfsPull: (path: string, file?: string) => invoke(IpcChannels.RepoLfsPull, { path, file }),
+  lfsTrack: (path: string, pattern: string) =>
+    invoke(IpcChannels.RepoLfsTrack, { path, pattern }),
   fetch: (path: string) => invoke(IpcChannels.RepoFetch, { path }),
   pull: (path: string) => invoke(IpcChannels.RepoPull, { path }),
   push: (path: string, force?: boolean) => invoke(IpcChannels.RepoPush, { path, force }),

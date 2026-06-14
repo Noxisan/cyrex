@@ -9,6 +9,10 @@ import {
   Archive,
   FolderGit2,
   FolderTree,
+  Boxes,
+  Database,
+  Download,
+  RefreshCw,
   Plus,
   Check,
   Star,
@@ -33,9 +37,17 @@ import {
   useDeleteTag,
   usePushTag,
   useWorktrees,
-  useWorktreeRemove
+  useWorktreeRemove,
+  useSubmodules,
+  useSubmoduleUpdate,
+  useSubmoduleUpdateAll,
+  useSubmoduleSync,
+  useLfsStatus,
+  useLfsPull,
+  useLfsTrack
 } from '../hooks/useRepo'
 import { AddWorktreeDialog } from './AddWorktreeDialog'
+import { AddSubmoduleDialog } from './AddSubmoduleDialog'
 import { ContextMenu } from './ContextMenu'
 import type { MenuState } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -240,6 +252,8 @@ export function Sidebar(): React.JSX.Element {
   const tags = useTags(activePath)
   const stashes = useStashes(activePath)
   const worktrees = useWorktrees(activePath)
+  const submodules = useSubmodules(activePath)
+  const lfs = useLfsStatus(activePath)
 
   const path = activePath ?? ''
   const checkout = useCheckout(path)
@@ -256,11 +270,18 @@ export function Sidebar(): React.JSX.Element {
   const deleteTag = useDeleteTag(path)
   const pushTag = usePushTag(path)
   const worktreeRemove = useWorktreeRemove(path)
+  const submoduleUpdate = useSubmoduleUpdate(path)
+  const submoduleUpdateAll = useSubmoduleUpdateAll(path)
+  const submoduleSync = useSubmoduleSync(path)
+  const lfsPull = useLfsPull(path)
+  const lfsTrack = useLfsTrack(path)
 
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const [creating, setCreating] = useState(false)
   const [addingWorktree, setAddingWorktree] = useState(false)
+  const [addingSubmodule, setAddingSubmodule] = useState(false)
+  const [trackingLfs, setTrackingLfs] = useState(false)
   const [renaming, setRenaming] = useState<string | null>(null)
   // Branch being dragged, and the branch currently hovered as a drop target.
   const [dragBranch, setDragBranch] = useState<string | null>(null)
@@ -441,6 +462,53 @@ export function Sidebar(): React.JSX.Element {
             })
         }
       ]
+    })
+  }
+
+  // Open an initialized submodule (a nested repo) as its own repository.
+  const openSubmodule = async (subPath: string): Promise<void> => {
+    if (!activePath) return
+    const res = await window.cyrex.openRepo(`${activePath}/${subPath}`)
+    if (res.ok) {
+      addRepo(res.data)
+      setActive(res.data.path)
+    }
+  }
+
+  const submoduleMenu = (
+    e: React.MouseEvent,
+    sub: { path: string; status: string }
+  ): void => {
+    e.preventDefault()
+    const uninitialized = sub.status === 'uninitialized'
+    setMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: t('submodule.open'),
+          disabled: uninitialized,
+          onClick: () => void openSubmodule(sub.path)
+        },
+        {
+          label: uninitialized ? t('submodule.init') : t('submodule.update'),
+          onClick: () => submoduleUpdate.mutate({ subPath: sub.path, init: uninitialized })
+        },
+        { label: t('submodule.sync'), onClick: () => submoduleSync.mutate(sub.path) },
+        {
+          label: t('submodule.copyPath'),
+          onClick: () => void navigator.clipboard.writeText(sub.path)
+        }
+      ]
+    })
+  }
+
+  const lfsMenu = (e: React.MouseEvent, file: string): void => {
+    e.preventDefault()
+    setMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [{ label: t('lfs.pull'), onClick: () => lfsPull.mutate(file) }]
     })
   }
 
@@ -715,12 +783,181 @@ export function Sidebar(): React.JSX.Element {
         )}
       </Section>
 
+      <Section
+        title={t('sidebar.submodules')}
+        icon={Boxes}
+        count={submodules.data?.length}
+        defaultOpen={false}
+        action={
+          activePath &&
+          submodules.data &&
+          submodules.data.length > 0 && (
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => submoduleUpdateAll.mutate(undefined)}
+                title={t('submodule.updateAll')}
+                aria-label={t('submodule.updateAll')}
+                className="rounded-[var(--radius-card)] p-1 text-fg-muted hover:bg-surface-2 hover:text-accent"
+              >
+                <RefreshCw size={13} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddingSubmodule(true)}
+                title={t('submodule.add')}
+                aria-label={t('submodule.add')}
+                className="rounded-[var(--radius-card)] p-1 text-fg-muted hover:bg-surface-2 hover:text-accent"
+              >
+                <Plus size={14} strokeWidth={2} />
+              </button>
+            </div>
+          )
+        }
+      >
+        {!submodules.data || submodules.data.length === 0 ? (
+          <div className="flex items-center gap-1 px-3 py-1 ps-7">
+            <p className="flex-1 text-xs text-fg-subtle">{t('sidebar.empty')}</p>
+            {activePath && (
+              <button
+                type="button"
+                onClick={() => setAddingSubmodule(true)}
+                className="text-xs text-accent hover:underline"
+              >
+                {t('submodule.add')}
+              </button>
+            )}
+          </div>
+        ) : (
+          submodules.data.map((sub) => {
+            const badge =
+              sub.status === 'uninitialized'
+                ? t('submodule.needsInit')
+                : sub.status === 'modified'
+                  ? t('submodule.modified')
+                  : sub.status === 'conflict'
+                    ? t('submodule.conflict')
+                    : undefined
+            return (
+              <div
+                key={sub.path}
+                onDoubleClick={() =>
+                  sub.status !== 'uninitialized' && void openSubmodule(sub.path)
+                }
+                onContextMenu={(e) => submoduleMenu(e, sub)}
+                title={`${sub.path}${sub.url ? ` — ${sub.url}` : ''}`}
+                className="group flex cursor-pointer items-center gap-2 px-3 py-1 ps-7 text-xs text-fg hover:bg-surface-2"
+              >
+                <Boxes size={11} strokeWidth={1.75} className="shrink-0 text-fg-subtle" />
+                <span className="min-w-0 flex-1 truncate">{sub.path}</span>
+                {badge && (
+                  <span
+                    className={`shrink-0 rounded-[4px] px-1 text-[10px] ${
+                      sub.status === 'conflict'
+                        ? 'bg-danger/15 text-danger'
+                        : 'bg-surface-2 text-fg-subtle'
+                    }`}
+                  >
+                    {badge}
+                  </span>
+                )}
+              </div>
+            )
+          })
+        )}
+      </Section>
+
+      <Section
+        title={t('sidebar.lfs')}
+        icon={Database}
+        count={lfs.data?.installed ? lfs.data.files.length : undefined}
+        defaultOpen={false}
+        action={
+          activePath &&
+          lfs.data?.installed && (
+            <div className="flex items-center">
+              {lfs.data.files.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => lfsPull.mutate(undefined)}
+                  title={t('lfs.pullAll')}
+                  aria-label={t('lfs.pullAll')}
+                  className="rounded-[var(--radius-card)] p-1 text-fg-muted hover:bg-surface-2 hover:text-accent"
+                >
+                  <Download size={13} strokeWidth={2} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setTrackingLfs(true)}
+                title={t('lfs.track')}
+                aria-label={t('lfs.track')}
+                className="rounded-[var(--radius-card)] p-1 text-fg-muted hover:bg-surface-2 hover:text-accent"
+              >
+                <Plus size={14} strokeWidth={2} />
+              </button>
+            </div>
+          )
+        }
+      >
+        {!lfs.data ? null : !lfs.data.installed ? (
+          <p className="px-3 py-1 ps-7 text-xs text-fg-subtle">{t('lfs.notInstalled')}</p>
+        ) : (
+          <>
+            {trackingLfs && (
+              <NameInput
+                initial=""
+                placeholder={t('lfs.patternPlaceholder')}
+                onSubmit={(pattern) => {
+                  lfsTrack.mutate(pattern)
+                  setTrackingLfs(false)
+                }}
+                onCancel={() => setTrackingLfs(false)}
+              />
+            )}
+            {lfs.data.patterns.map((p) => (
+              <div
+                key={`pat-${p}`}
+                title={t('lfs.trackedPattern')}
+                className="flex items-center gap-2 px-3 py-1 ps-7 text-xs text-fg-subtle"
+              >
+                <span className="truncate font-mono">{p}</span>
+              </div>
+            ))}
+            {lfs.data.files.map((f) => (
+              <div
+                key={f.path}
+                onDoubleClick={() => !f.downloaded && lfsPull.mutate(f.path)}
+                onContextMenu={(e) => lfsMenu(e, f.path)}
+                title={f.downloaded ? f.path : `${f.path} — ${t('lfs.pointerHint')}`}
+                className="group flex cursor-pointer items-center gap-2 px-3 py-1 ps-7 text-xs text-fg hover:bg-surface-2"
+              >
+                <Database size={11} strokeWidth={1.75} className="shrink-0 text-fg-subtle" />
+                <span className="min-w-0 flex-1 truncate">{f.path}</span>
+                {!f.downloaded && (
+                  <span className="shrink-0 rounded-[4px] bg-surface-2 px-1 text-[10px] text-fg-subtle">
+                    {t('lfs.pointer')}
+                  </span>
+                )}
+              </div>
+            ))}
+            {lfs.data.patterns.length === 0 && lfs.data.files.length === 0 && !trackingLfs && (
+              <p className="px-3 py-1 ps-7 text-xs text-fg-subtle">{t('lfs.empty')}</p>
+            )}
+          </>
+        )}
+      </Section>
+
       {addingWorktree && activePath && (
         <AddWorktreeDialog
           repoPath={activePath}
           branches={locals.map((b) => b.name)}
           onClose={() => setAddingWorktree(false)}
         />
+      )}
+
+      {addingSubmodule && activePath && (
+        <AddSubmoduleDialog repoPath={activePath} onClose={() => setAddingSubmodule(false)} />
       )}
 
       <ContextMenu state={menu} onClose={() => setMenu(null)} />

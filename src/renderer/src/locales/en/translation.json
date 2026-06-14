@@ -85,6 +85,8 @@
     "tags": "Tags",
     "stashes": "Stashes",
     "worktrees": "Worktrees",
+    "submodules": "Submodules",
+    "lfs": "Git LFS",
     "empty": "None"
   },
   "worktree": {
@@ -108,7 +110,41 @@
   },
   "common": {
     "cancel": "Cancel",
-    "create": "Create"
+    "create": "Create",
+    "add": "Add"
+  },
+  "submodule": {
+    "add": "Add submodule",
+    "addTitle": "Add a submodule",
+    "adding": "Adding…",
+    "url": "Clone URL",
+    "urlPlaceholder": "https://host/owner/repo.git",
+    "path": "Path",
+    "pathPlaceholder": "vendor/library",
+    "open": "Open as repository",
+    "init": "Initialize",
+    "update": "Update",
+    "updateAll": "Update all submodules",
+    "sync": "Sync URL",
+    "copyPath": "Copy path",
+    "needsInit": "needs init",
+    "modified": "modified",
+    "conflict": "conflict",
+    "updated": "Submodules updated",
+    "synced": "Submodule URLs synced",
+    "added": "Submodule added"
+  },
+  "lfs": {
+    "track": "Track a pattern",
+    "trackedPattern": "Tracked by LFS",
+    "patternPlaceholder": "*.psd",
+    "pull": "Download content",
+    "pullAll": "Download all content",
+    "pulled": "LFS content downloaded",
+    "pointer": "pointer",
+    "pointerHint": "pointer only — double-click to download",
+    "notInstalled": "git-lfs is not installed",
+    "empty": "No tracked files"
   },
   "settings": {
     "general": "General",

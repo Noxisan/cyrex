@@ -121,6 +121,47 @@ export interface Worktree {
   isMain: boolean
 }
 
+/** A submodule recorded in `.gitmodules`, with its working-tree status. */
+export interface Submodule {
+  /** The submodule's logical name (the `.gitmodules` section name). */
+  name: string
+  /** Repo-relative path where the submodule is checked out. */
+  path: string
+  /** Configured clone URL (may be empty if `.gitmodules` lacks it). */
+  url: string
+  /** The commit the superproject records for the submodule, when known. */
+  sha: string | null
+  /** `git describe` of the checked-out commit, when available. */
+  describe: string | null
+  /**
+   * - `uninitialized`: not checked out yet (needs init/update).
+   * - `upToDate`: checked-out commit matches what the superproject records.
+   * - `modified`: checked-out commit differs (needs update, or has local work).
+   * - `conflict`: a merge conflict involves this submodule.
+   */
+  status: 'uninitialized' | 'upToDate' | 'modified' | 'conflict'
+}
+
+/** One file managed by Git LFS, with whether its content is present locally. */
+export interface LfsFile {
+  path: string
+  /** The LFS object id (oid) recorded in the pointer. */
+  oid: string
+  /** True when the real content is checked out; false when it is a pointer only. */
+  downloaded: boolean
+}
+
+/** Repository-wide Git LFS awareness (CLAUDE.md §8). */
+export interface LfsStatus {
+  /** The `git-lfs` binary is installed and usable. */
+  installed: boolean
+  /** The repository actually uses LFS (has tracked patterns or LFS files). */
+  enabled: boolean
+  /** Tracked glob patterns from `.gitattributes` (filter=lfs). */
+  patterns: string[]
+  files: LfsFile[]
+}
+
 export interface LogOptions {
   /** Max commits to return (pagination). */
   limit?: number

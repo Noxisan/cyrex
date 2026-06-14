@@ -85,6 +85,8 @@
     "tags": "Tags",
     "stashes": "Stashes",
     "worktrees": "Worktrees",
+    "submodules": "Submodule",
+    "lfs": "Git LFS",
     "empty": "Keine"
   },
   "worktree": {
@@ -108,7 +110,41 @@
   },
   "common": {
     "cancel": "Abbrechen",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "add": "Hinzufügen"
+  },
+  "submodule": {
+    "add": "Submodul hinzufügen",
+    "addTitle": "Submodul hinzufügen",
+    "adding": "Wird hinzugefügt…",
+    "url": "Klon-URL",
+    "urlPlaceholder": "https://host/owner/repo.git",
+    "path": "Pfad",
+    "pathPlaceholder": "vendor/library",
+    "open": "Als Repository öffnen",
+    "init": "Initialisieren",
+    "update": "Aktualisieren",
+    "updateAll": "Alle Submodule aktualisieren",
+    "sync": "URL synchronisieren",
+    "copyPath": "Pfad kopieren",
+    "needsInit": "nicht initialisiert",
+    "modified": "geändert",
+    "conflict": "Konflikt",
+    "updated": "Submodule aktualisiert",
+    "synced": "Submodul-URLs synchronisiert",
+    "added": "Submodul hinzugefügt"
+  },
+  "lfs": {
+    "track": "Muster verfolgen",
+    "trackedPattern": "Von LFS verfolgt",
+    "patternPlaceholder": "*.psd",
+    "pull": "Inhalt herunterladen",
+    "pullAll": "Alle Inhalte herunterladen",
+    "pulled": "LFS-Inhalte heruntergeladen",
+    "pointer": "Pointer",
+    "pointerHint": "nur Pointer — zum Herunterladen doppelklicken",
+    "notInstalled": "git-lfs ist nicht installiert",
+    "empty": "Keine verfolgten Dateien"
   },
   "settings": {
     "general": "Allgemein",

@@ -20,6 +20,8 @@ import type {
   DiffFile,
   FileStatus,
   FileStatusCode,
+  LfsFile,
+  LfsStatus,
   LogOptions,
   RebaseResult,
   RebaseTodoItem,
@@ -28,6 +30,7 @@ import type {
   RepoRef,
   RepoStatus,
   Stash,
+  Submodule,
   Tag,
   Worktree
 } from '@shared/types'
@@ -991,6 +994,168 @@ export async function worktreeRemove(
   if (force) args.push('--force')
   args.push(worktreePath)
   await runGit(args, { cwd: repoPath })
+}
+
+// --- submodules -------------------------------------------------------------
+//
+// Cyrex reflects submodules as the nested repositories they are. Listing merges
+// the declared modules from `.gitmodules` (name/path/url) with their live state
+// from `git submodule status` (recorded sha + sync flag). Update/sync/add are
+// thin wrappers; update clones content, so it is a network operation.
+
+/** Map the leading flag of a `git submodule status` line to a status. */
+function submoduleStatusFlag(flag: string): Submodule['status'] {
+  if (flag === '+') return 'modified'
+  if (flag === '-') return 'uninitialized'
+  if (flag === 'U') return 'conflict'
+  return 'upToDate'
+}
+
+/** List the repository's submodules with their working-tree status. */
+export async function submodules(repoPath: string): Promise<Submodule[]> {
+  const gitmodules = join(repoPath, '.gitmodules')
+  if (!existsSync(gitmodules)) return []
+
+  // Declared modules: parse `.gitmodules` (-z --list gives key\nvalue\0 records).
+  const cfg = await runGit(['config', '--file', gitmodules, '-z', '--list'], {
+    cwd: repoPath,
+    throwOnError: false
+  })
+  const meta = new Map<string, { path?: string; url?: string }>()
+  for (const entry of cfg.stdout.split('\0')) {
+    if (!entry) continue
+    const nl = entry.indexOf('\n')
+    const key = nl === -1 ? entry : entry.slice(0, nl)
+    const val = nl === -1 ? '' : entry.slice(nl + 1)
+    const m = key.match(/^submodule\.(.+)\.(path|url)$/)
+    if (!m) continue
+    const rec = meta.get(m[1]) ?? {}
+    if (m[2] === 'path') rec.path = val
+    else rec.url = val
+    meta.set(m[1], rec)
+  }
+
+  // Live status keyed by path: "<flag><sha> <path> [(describe)]".
+  const st = await runGit(['submodule', 'status'], { cwd: repoPath, throwOnError: false })
+  const byPath = new Map<string, { sha: string; status: Submodule['status']; describe: string | null }>()
+  for (const line of st.stdout.split('\n')) {
+    if (!line.trim()) continue
+    const m = line.slice(1).match(/^([0-9a-f]+)\s+(.+?)(?:\s+\((.+)\))?$/)
+    if (!m) continue
+    byPath.set(m[2], {
+      sha: m[1],
+      status: submoduleStatusFlag(line[0]),
+      describe: m[3] ?? null
+    })
+  }
+
+  const list: Submodule[] = []
+  for (const [name, rec] of meta) {
+    if (!rec.path) continue
+    const s = byPath.get(rec.path)
+    list.push({
+      name,
+      path: rec.path,
+      url: rec.url ?? '',
+      sha: s?.sha ?? null,
+      describe: s?.describe ?? null,
+      status: s?.status ?? 'uninitialized'
+    })
+  }
+  return list.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+/** Update one submodule to the recorded commit; `init` checks it out first. */
+export async function updateSubmodule(
+  repoPath: string,
+  subPath: string,
+  init = false
+): Promise<void> {
+  const args = ['submodule', 'update']
+  if (init) args.push('--init')
+  args.push('--', subPath)
+  await runGit(args, { cwd: repoPath, timeoutMs: NETWORK_TIMEOUT })
+}
+
+/** Initialize and update every submodule, recursively. */
+export async function updateAllSubmodules(repoPath: string): Promise<void> {
+  await runGit(['submodule', 'update', '--init', '--recursive'], {
+    cwd: repoPath,
+    timeoutMs: NETWORK_TIMEOUT
+  })
+}
+
+/** Re-sync submodule remote URLs from `.gitmodules` into their configs. */
+export async function syncSubmodules(repoPath: string, subPath?: string): Promise<void> {
+  const args = ['submodule', 'sync']
+  if (subPath) args.push('--', subPath)
+  await runGit(args, { cwd: repoPath })
+}
+
+/** Add a new submodule at `subPath` cloned from `url` (a network operation). */
+export async function addSubmodule(
+  repoPath: string,
+  url: string,
+  subPath: string
+): Promise<void> {
+  await runGit(['submodule', 'add', '--', url, subPath], {
+    cwd: repoPath,
+    timeoutMs: NETWORK_TIMEOUT
+  })
+}
+
+// --- Git LFS awareness ------------------------------------------------------
+//
+// Cyrex surfaces LFS state without taking it over: which patterns are tracked,
+// which files are LFS objects, and whether each object's content is present
+// locally or is still just a pointer. Pulls delegate credentials to the system
+// git/lfs, like every other network operation (CLAUDE.md §4).
+
+/** Repository-wide Git LFS status (no-op-friendly when git-lfs is absent). */
+export async function lfsStatus(repoPath: string): Promise<LfsStatus> {
+  const ver = await runGit(['lfs', 'version'], { cwd: repoPath, throwOnError: false })
+  if (ver.code !== 0) return { installed: false, enabled: false, patterns: [], files: [] }
+
+  // Tracked patterns from the root .gitattributes (lines with filter=lfs).
+  const patterns: string[] = []
+  const attrs = join(repoPath, '.gitattributes')
+  if (existsSync(attrs)) {
+    const text = await readFile(attrs, 'utf8')
+    for (const line of text.split('\n')) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) continue
+      if (/(^|\s)filter=lfs(\s|$)/.test(trimmed)) patterns.push(trimmed.split(/\s+/)[0])
+    }
+  }
+
+  // LFS files + pointer/content state: "<oid> <*|-> <path>" (* = present).
+  const ls = await runGit(['lfs', 'ls-files'], { cwd: repoPath, throwOnError: false })
+  const files: LfsFile[] = []
+  for (const line of ls.stdout.split('\n')) {
+    if (!line.trim()) continue
+    const m = line.match(/^(\S+)\s+([*-])\s+(.+)$/)
+    if (!m) continue
+    files.push({ oid: m[1], downloaded: m[2] === '*', path: m[3] })
+  }
+
+  return {
+    installed: true,
+    enabled: patterns.length > 0 || files.length > 0,
+    patterns,
+    files
+  }
+}
+
+/** Download LFS content for the whole working tree, or a single file. */
+export async function lfsPull(repoPath: string, file?: string): Promise<void> {
+  const args = ['lfs', 'pull']
+  if (file) args.push('--include', file)
+  await runGit(args, { cwd: repoPath, timeoutMs: NETWORK_TIMEOUT })
+}
+
+/** Start tracking a glob pattern with LFS (writes `.gitattributes`). */
+export async function lfsTrack(repoPath: string, pattern: string): Promise<void> {
+  await runGit(['lfs', 'track', pattern], { cwd: repoPath })
 }
 
 // --- merge / cherry-pick / revert -------------------------------------------

@@ -35,6 +35,8 @@ import {
   discardSchema,
   fileOpSchema,
   interactiveRebaseSchema,
+  lfsPullSchema,
+  lfsTrackSchema,
   logSchema,
   mergeBranchSchema,
   mergeSchema,
@@ -50,6 +52,9 @@ import {
   searchSchema,
   stashIndexSchema,
   stashSaveSchema,
+  submoduleAddSchema,
+  submoduleSyncSchema,
+  submoduleUpdateSchema,
   workingDiffSchema,
   worktreeAddSchema,
   worktreeRemoveSchema
@@ -301,6 +306,64 @@ export function registerIpcHandlers(): void {
     IpcChannels.RepoWorktreeRemove,
     wrap(worktreeRemoveSchema, async (req) => {
       await engine.worktreeRemove(req.path, req.worktreePath, req.force)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoSubmodules,
+    wrap(repoPathSchema, (req) => engine.submodules(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoSubmoduleUpdate,
+    wrap(submoduleUpdateSchema, async (req) => {
+      await engine.updateSubmodule(req.path, req.subPath, req.init)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoSubmoduleUpdateAll,
+    wrap(repoPathSchema, async (req) => {
+      await engine.updateAllSubmodules(req.path)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoSubmoduleSync,
+    wrap(submoduleSyncSchema, async (req) => {
+      await engine.syncSubmodules(req.path, req.subPath)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoSubmoduleAdd,
+    wrap(submoduleAddSchema, async (req) => {
+      await engine.addSubmodule(req.path, req.url, req.subPath)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoLfsStatus,
+    wrap(repoPathSchema, (req) => engine.lfsStatus(req.path))
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoLfsPull,
+    wrap(lfsPullSchema, async (req) => {
+      await engine.lfsPull(req.path, req.file)
+      return null
+    })
+  )
+
+  ipcMain.handle(
+    IpcChannels.RepoLfsTrack,
+    wrap(lfsTrackSchema, async (req) => {
+      await engine.lfsTrack(req.path, req.pattern)
       return null
     })
   )

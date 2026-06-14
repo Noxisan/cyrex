@@ -67,6 +67,10 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Hosting integration: GitLab (device flow + token) | Done |
 | Hosting integration: Bitbucket (app password) | Done |
 | Settings: theme (light / dark / system), accent palettes, shortcuts | Done |
+| Tags: create (lightweight / annotated), delete, push | Done |
+| Worktrees: list, add, open, remove | Done |
+| Submodules: list with status, init / update / sync, add | Done |
+| Git LFS awareness: tracked patterns, pointer vs. content, pull | Done |
 
 ## Supported languages
 

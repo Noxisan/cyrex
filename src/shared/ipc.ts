@@ -18,6 +18,7 @@ import type {
   EngineResult,
   HostingAccount,
   HostingProviderId,
+  LfsStatus,
   LogOptions,
   RebaseResult,
   RebaseTodoItem,
@@ -26,6 +27,7 @@ import type {
   RepoRef,
   RepoStatus,
   Stash,
+  Submodule,
   Tag,
   Worktree
 } from './types'
@@ -75,6 +77,16 @@ export const IpcChannels = {
   RepoWorktreeAdd: 'repo:worktreeAdd',
   /** DESTRUCTIVE — deletes the worktree's working-tree directory. */
   RepoWorktreeRemove: 'repo:worktreeRemove',
+  /** Submodule operations (update/add clone content — network ops). */
+  RepoSubmodules: 'repo:submodules',
+  RepoSubmoduleUpdate: 'repo:submoduleUpdate',
+  RepoSubmoduleUpdateAll: 'repo:submoduleUpdateAll',
+  RepoSubmoduleSync: 'repo:submoduleSync',
+  RepoSubmoduleAdd: 'repo:submoduleAdd',
+  /** Git LFS awareness: status, pull content, track a pattern. */
+  RepoLfsStatus: 'repo:lfsStatus',
+  RepoLfsPull: 'repo:lfsPull',
+  RepoLfsTrack: 'repo:lfsTrack',
   /** Network operations (credentials handled by the system git). */
   RepoFetch: 'repo:fetch',
   RepoPull: 'repo:pull',
@@ -301,6 +313,38 @@ export interface IpcApi {
   }
   [IpcChannels.RepoWorktreeRemove]: {
     request: { path: string; worktreePath: string; force?: boolean }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoSubmodules]: {
+    request: { path: string }
+    response: EngineResult<Submodule[]>
+  }
+  [IpcChannels.RepoSubmoduleUpdate]: {
+    request: { path: string; subPath: string; init?: boolean }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoSubmoduleUpdateAll]: {
+    request: { path: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoSubmoduleSync]: {
+    request: { path: string; subPath?: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoSubmoduleAdd]: {
+    request: { path: string; url: string; subPath: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoLfsStatus]: {
+    request: { path: string }
+    response: EngineResult<LfsStatus>
+  }
+  [IpcChannels.RepoLfsPull]: {
+    request: { path: string; file?: string }
+    response: EngineResult<null>
+  }
+  [IpcChannels.RepoLfsTrack]: {
+    request: { path: string; pattern: string }
     response: EngineResult<null>
   }
   [IpcChannels.RepoFetch]: {
