@@ -4,9 +4,11 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Archive,
+  Cloud,
   FolderOpen,
   GitBranch,
   GitCommitHorizontal,
+  Hash,
   History,
   Moon,
   RefreshCw,
@@ -15,7 +17,16 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useRepoStore } from '../store/repoStore'
-import { useBranches, useCheckout, useFetch, usePull, usePush, useStashSave } from '../hooks/useRepo'
+import {
+  useBranches,
+  useCheckout,
+  useCheckoutRemote,
+  useFetch,
+  usePull,
+  usePush,
+  useSearch,
+  useStashSave
+} from '../hooks/useRepo'
 
 interface Command {
   id: string
@@ -24,14 +35,21 @@ interface Command {
   icon: LucideIcon
   /** Extra text matched by the filter but not shown. */
   keywords?: string
+  /** Right-aligned keyboard hint, rendered as a <kbd>. */
+  hint?: string
+  /** Right-aligned muted text (e.g. a short sha). */
+  meta?: string
   run: () => void
 }
 
 /**
  * Keyboard-first command palette (Cmd/Ctrl+K). It owns the global open shortcut
- * and stays mounted (rendering null when closed) so the listener is always live.
- * Commands map 1:1 to existing store actions and engine hooks — the palette adds
- * no new capability, only a faster way to reach what the UI already exposes.
+ * and the `g h` / `g c` view-jump chords, and stays mounted (rendering null when
+ * closed) so the listeners are always live. Commands map 1:1 to existing store
+ * actions and engine hooks — the palette adds no new capability, only a faster
+ * way to reach what the UI already exposes. Typing also searches commits via the
+ * same engine `search` IPC the top-bar box uses, so a match jumps straight into
+ * the existing graph results view with that commit selected.
  */
 export function CommandPalette(): React.JSX.Element | null {
   const { t } = useTranslation()
@@ -40,6 +58,8 @@ export function CommandPalette(): React.JSX.Element | null {
   const closePalette = useRepoStore((s) => s.closePalette)
   const activePath = useRepoStore((s) => s.activePath)
   const setViewMode = useRepoStore((s) => s.setViewMode)
+  const selectCommit = useRepoStore((s) => s.selectCommit)
+  const setSearchQuery = useRepoStore((s) => s.setSearchQuery)
   const openReflog = useRepoStore((s) => s.openReflog)
   const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
   const toggleTheme = useRepoStore((s) => s.toggleTheme)
@@ -47,6 +67,7 @@ export function CommandPalette(): React.JSX.Element | null {
 
   const { data: branches } = useBranches(activePath)
   const checkout = useCheckout(activePath ?? '')
+  const checkoutRemote = useCheckoutRemote(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
   const push = usePush(activePath ?? '')
@@ -55,6 +76,15 @@ export function CommandPalette(): React.JSX.Element | null {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const listRef = useRef<HTMLDivElement>(null)
+
+  // Debounce the query before hitting the engine search (one request per pause,
+  // not per keystroke). The local command filter still runs on every keystroke.
+  const [debounced, setDebounced] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(query.trim()), 200)
+    return () => clearTimeout(id)
+  }, [query])
+  const { data: commitMatches } = useSearch(activePath, debounced)
 
   // Global open/close shortcut. Mounted always, so this is the app's Cmd/Ctrl+K.
   useEffect(() => {
@@ -68,6 +98,48 @@ export function CommandPalette(): React.JSX.Element | null {
     return () => window.removeEventListener('keydown', onKey)
   }, [togglePalette])
 
+  // Keyboard-first view chords: press `g` then `h` (history) or `c` (changes).
+  // Ignored while typing in a field or with a modifier held, so it never eats
+  // real input. Only active with a repo open.
+  const hasRepo = !!activePath
+  useEffect(() => {
+    if (!hasRepo) return
+    let armed = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const onKey = (e: KeyboardEvent): void => {
+      const el = document.activeElement as HTMLElement | null
+      const typing =
+        !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) {
+        armed = false
+        return
+      }
+      if (armed) {
+        if (e.key === 'h') {
+          e.preventDefault()
+          setViewMode('history')
+        } else if (e.key === 'c') {
+          e.preventDefault()
+          setViewMode('changes')
+        }
+        armed = false
+        if (timer) clearTimeout(timer)
+        return
+      }
+      if (e.key === 'g') {
+        armed = true
+        timer = setTimeout(() => {
+          armed = false
+        }, 800)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      if (timer) clearTimeout(timer)
+    }
+  }, [hasRepo, setViewMode])
+
   // Reset the query and selection each time the palette opens.
   useEffect(() => {
     if (open) {
@@ -75,8 +147,6 @@ export function CommandPalette(): React.JSX.Element | null {
       setActive(0)
     }
   }, [open])
-
-  const hasRepo = !!activePath
 
   const commands = useMemo<Command[]>(() => {
     const nav = t('palette.group.navigation')
@@ -92,8 +162,8 @@ export function CommandPalette(): React.JSX.Element | null {
     const list: Command[] = []
     if (hasRepo) {
       list.push(
-        { id: 'nav-history', group: nav, label: t('palette.goHistory'), icon: History, keywords: 'graph commits', run: () => setViewMode('history') },
-        { id: 'nav-changes', group: nav, label: t('palette.goChanges'), icon: GitCommitHorizontal, keywords: 'staging commit', run: () => setViewMode('changes') }
+        { id: 'nav-history', group: nav, label: t('palette.goHistory'), icon: History, keywords: 'graph commits', hint: 'g h', run: () => setViewMode('history') },
+        { id: 'nav-changes', group: nav, label: t('palette.goChanges'), icon: GitCommitHorizontal, keywords: 'staging commit', hint: 'g c', run: () => setViewMode('changes') }
       )
     }
     list.push({
@@ -122,6 +192,10 @@ export function CommandPalette(): React.JSX.Element | null {
         keywords: 'shell console',
         run: toggleTerminal
       })
+      const locals = new Set<string>()
+      for (const b of branches ?? []) {
+        if (b.kind === 'local') locals.add(b.name)
+      }
       for (const b of branches ?? []) {
         if (b.kind !== 'local' || b.current) continue
         list.push({
@@ -133,11 +207,26 @@ export function CommandPalette(): React.JSX.Element | null {
           run: () => checkout.mutate(b.name)
         })
       }
+      // Remote branches with no local counterpart — check out as a new tracking
+      // branch (origin/HEAD and the like carry no useful short name; skip them).
+      for (const b of branches ?? []) {
+        if (b.kind !== 'remote') continue
+        const short = b.name.includes('/') ? b.name.slice(b.name.indexOf('/') + 1) : b.name
+        if (short === 'HEAD' || locals.has(short)) continue
+        list.push({
+          id: `checkout-remote-${b.name}`,
+          group: branchGroup,
+          label: t('palette.checkoutRemote', { name: b.name }),
+          icon: Cloud,
+          keywords: 'switch track ' + b.name + ' ' + short,
+          run: () => checkoutRemote.mutate(b.name)
+        })
+      }
     }
     return list
   }, [hasRepo, branches, t])
 
-  const filtered = useMemo(() => {
+  const filteredCommands = useMemo(() => {
     const tokens = query.toLowerCase().split(/\s+/).filter(Boolean)
     if (tokens.length === 0) return commands
     return commands.filter((c) => {
@@ -146,10 +235,34 @@ export function CommandPalette(): React.JSX.Element | null {
     })
   }, [commands, query])
 
-  // Keep the active index in range as the filtered set shrinks.
+  // Commit matches come pre-filtered from the engine; jump into the graph results
+  // view (the same one the top-bar search drives) with the commit selected.
+  const commitCommands = useMemo<Command[]>(() => {
+    if (!debounced) return []
+    const group = t('palette.group.commits')
+    return (commitMatches ?? []).slice(0, 8).map((c) => ({
+      id: `commit-${c.sha}`,
+      group,
+      label: c.summary,
+      icon: Hash,
+      meta: c.shortSha,
+      run: () => {
+        setSearchQuery(debounced)
+        setViewMode('history')
+        selectCommit(c.sha)
+      }
+    }))
+  }, [commitMatches, debounced, t])
+
+  const items = useMemo(
+    () => [...filteredCommands, ...commitCommands],
+    [filteredCommands, commitCommands]
+  )
+
+  // Keep the active index in range as the result set changes.
   useEffect(() => {
-    setActive((a) => Math.min(a, Math.max(0, filtered.length - 1)))
-  }, [filtered.length])
+    setActive((a) => Math.min(a, Math.max(0, items.length - 1)))
+  }, [items.length])
 
   if (!open) return null
 
@@ -161,13 +274,13 @@ export function CommandPalette(): React.JSX.Element | null {
   const onKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActive((a) => Math.min(a + 1, filtered.length - 1))
+      setActive((a) => Math.min(a + 1, items.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActive((a) => Math.max(a - 1, 0))
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      const cmd = filtered[active]
+      const cmd = items[active]
       if (cmd) run(cmd)
     } else if (e.key === 'Escape') {
       e.preventDefault()
@@ -199,12 +312,12 @@ export function CommandPalette(): React.JSX.Element | null {
           className="shrink-0 border-b border-border bg-transparent px-4 py-3 text-sm text-fg outline-none placeholder:text-fg-subtle"
         />
         <div ref={listRef} className="min-h-0 flex-1 overflow-auto py-1">
-          {filtered.length === 0 && (
+          {items.length === 0 && (
             <div className="px-4 py-6 text-center text-xs text-fg-subtle">
               {t('palette.noResults')}
             </div>
           )}
-          {filtered.map((cmd, i) => {
+          {items.map((cmd, i) => {
             const showHeader = cmd.group !== lastGroup
             lastGroup = cmd.group
             const Icon = cmd.icon
@@ -226,11 +339,31 @@ export function CommandPalette(): React.JSX.Element | null {
                   }`}
                 >
                   <Icon size={15} strokeWidth={1.75} className="shrink-0 text-fg-subtle" />
-                  <span className="truncate">{cmd.label}</span>
+                  <span className="min-w-0 flex-1 truncate">{cmd.label}</span>
+                  {cmd.meta && (
+                    <span className="shrink-0 font-mono text-[10px] text-fg-subtle">{cmd.meta}</span>
+                  )}
+                  {cmd.hint && (
+                    <kbd className="shrink-0 rounded border border-border px-1 text-[10px] text-fg-subtle">
+                      {cmd.hint}
+                    </kbd>
+                  )}
                 </button>
               </div>
             )
           })}
+        </div>
+        <div className="flex shrink-0 items-center gap-3 border-t border-border px-4 py-1.5 text-[10px] text-fg-subtle">
+          <span>
+            <kbd className="rounded border border-border px-1">↑</kbd>{' '}
+            <kbd className="rounded border border-border px-1">↓</kbd> {t('palette.navHint')}
+          </span>
+          <span>
+            <kbd className="rounded border border-border px-1">↵</kbd> {t('palette.runHint')}
+          </span>
+          <span>
+            <kbd className="rounded border border-border px-1">esc</kbd> {t('palette.closeHint')}
+          </span>
         </div>
       </div>
     </div>
