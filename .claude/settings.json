@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "swarmmind": {
-      "type": "sse",
-      "url": "http://127.0.0.1:43099/mcp/sse?token=60be763bc5d393c5306083c50174b7246016a7b7dd657050d36702f415bb0813&ws=3657b699-3b20-4a38-9784-651e294e4f65"
-    }
-  }
-}

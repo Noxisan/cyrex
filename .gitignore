@@ -29,3 +29,7 @@ npm-debug.log*
 .env.local
 *.pem
 *.key
+
+# Local agent config and project guide — kept out of the published repo
+.claude/
+CLAUDE.md

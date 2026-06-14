@@ -34,23 +34,7 @@ Until the first release, see Build from source below.
 
 ## Screenshots
 
-**Staging area** — stage by file, hunk, or line, with a Conventional Commit helper.
-
-<p align="center">
-  <img src="docs/screenshots/staging.png" alt="Staging area with staged, changed, and untracked files" width="320" />
-</p>
-
-**Diff view** — side-by-side or inline, syntax-highlighted, with per-hunk and per-line actions.
-
-<p align="center">
-  <img src="docs/screenshots/diff.png" alt="Syntax-highlighted diff view" width="820" />
-</p>
-
-**Sidebar** — repositories, branches, tags, stashes, worktrees, submodules, and Git LFS, with color dot markers.
-
-<p align="center">
-  <img src="docs/screenshots/sidebar.png" alt="Sidebar with branches, tags, and other refs" width="280" />
-</p>
+The commit graph view is shown above. A fuller gallery — diff view, staging area, and sidebar — will be added as the UI stabilizes.
 
 ## Feature matrix
 
