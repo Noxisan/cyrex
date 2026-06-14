@@ -329,6 +329,16 @@
     "history": "Verlauf",
     "changes": "Änderungen"
   },
+  "cc": {
+    "enable": "Conventional",
+    "type": "Typ",
+    "scope": "Scope",
+    "scopePlaceholder": "Scope (optional)",
+    "breaking": "Breaking",
+    "breakingHint": "Breaking Change kennzeichnen (fügt \"!\" zum Typ hinzu)",
+    "summaryPlaceholder": "Kurze Zusammenfassung in der ersten Zeile; optionaler Text darunter",
+    "previewEmpty": "type(scope): Zusammenfassung…"
+  },
   "changes": {
     "stageAll": "Alle bereitstellen",
     "unstageAll": "Alle entfernen",

@@ -72,6 +72,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Submodules: list with status, init / update / sync, add | Done |
 | Git LFS awareness: tracked patterns, pointer vs. content, pull | Done |
 | Visual .gitignore editing with live match preview | Done |
+| Conventional Commit helper (type / scope / breaking) | Done |
 
 ## Supported languages
 
