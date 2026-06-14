@@ -12,7 +12,17 @@
     "search": "Suchen",
     "undo": "Rückgängig",
     "terminal": "Terminal",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "merge": "Merge",
+    "rebase": "Rebase"
+  },
+  "dnd": {
+    "merge": "{{source}} in {{target}} mergen",
+    "rebase": "{{source}} auf {{target}} rebasen",
+    "mergeTitle": "Branch mergen",
+    "mergeMessage": "{{source}} in {{target}} mergen? Dabei wird {{target}} ausgecheckt und {{source}} hineingemergt.",
+    "rebaseTitle": "Branch rebasen",
+    "rebaseMessage": "{{source}} auf {{target}} rebasen? Dies schreibt die Historie von {{source}} um, indem die Commits auf {{target}} neu aufgespielt werden — über Rückgängig (Reflog) wiederherstellbar."
   },
   "terminal": {
     "title": "Terminal",

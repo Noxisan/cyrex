@@ -19,6 +19,8 @@ import {
   useCreateBranch,
   useDeleteBranch,
   useMerge,
+  useMergeBranch,
+  useRebaseBranch,
   useRenameBranch,
   useStashApply,
   useStashDrop,
@@ -116,22 +118,41 @@ function RefRow({
   current,
   badge,
   onDoubleClick,
-  onContextMenu
+  onContextMenu,
+  draggable,
+  dropActive,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop
 }: {
   name: string
   current?: boolean
   badge?: string
   onDoubleClick?: () => void
   onContextMenu?: (e: React.MouseEvent) => void
+  draggable?: boolean
+  dropActive?: boolean
+  onDragStart?: (e: React.DragEvent) => void
+  onDragOver?: (e: React.DragEvent) => void
+  onDragLeave?: (e: React.DragEvent) => void
+  onDrop?: (e: React.DragEvent) => void
 }): React.JSX.Element {
   return (
     <div
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       title={current ? name : `${name} — double-click to check out`}
       className={`group flex items-center gap-2 px-3 py-1 ps-7 text-xs hover:bg-surface-2 ${
         onDoubleClick ? 'cursor-pointer' : ''
-      } ${current ? 'text-accent' : 'text-fg'}`}
+      } ${dropActive ? 'bg-accent/15 ring-1 ring-inset ring-accent' : ''} ${
+        current ? 'text-accent' : 'text-fg'
+      }`}
     >
       {current ? (
         <Check size={12} strokeWidth={2.5} className="shrink-0 text-accent" />
@@ -158,6 +179,8 @@ export function Sidebar(): React.JSX.Element {
   const renameBranch = useRenameBranch(path)
   const deleteBranch = useDeleteBranch(path)
   const merge = useMerge(path)
+  const mergeBranch = useMergeBranch(path)
+  const rebaseBranch = useRebaseBranch(path)
   const stashApply = useStashApply(path)
   const stashPop = useStashPop(path)
   const stashDrop = useStashDrop(path)
@@ -166,6 +189,9 @@ export function Sidebar(): React.JSX.Element {
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const [creating, setCreating] = useState(false)
   const [renaming, setRenaming] = useState<string | null>(null)
+  // Branch being dragged, and the branch currently hovered as a drop target.
+  const [dragBranch, setDragBranch] = useState<string | null>(null)
+  const [dropTarget, setDropTarget] = useState<string | null>(null)
 
   const locals = branches.data?.filter((b) => b.kind === 'local') ?? []
   const remotes = branches.data?.filter((b) => b.kind === 'remote') ?? []
@@ -201,6 +227,44 @@ export function Sidebar(): React.JSX.Element {
               confirmLabel: t('branch.forceDelete'),
               danger: true,
               onConfirm: () => deleteBranch.mutate({ name, force: true })
+            })
+        }
+      ]
+    })
+  }
+
+  // Drop one local branch onto another: offer merge or rebase, each confirmed.
+  // Both go through the engine (checkout + merge/rebase) — never auto-resolved.
+  const branchDrop = (e: React.DragEvent, target: string): void => {
+    e.preventDefault()
+    const source = e.dataTransfer.getData('text/cyrex-branch') || dragBranch
+    setDragBranch(null)
+    setDropTarget(null)
+    if (!source || source === target) return
+    setMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        {
+          label: t('dnd.merge', { source, target }),
+          onClick: () =>
+            setConfirm({
+              title: t('dnd.mergeTitle'),
+              message: t('dnd.mergeMessage', { source, target }),
+              confirmLabel: t('actions.merge'),
+              onConfirm: () => mergeBranch.mutate({ source, target })
+            })
+        },
+        {
+          label: t('dnd.rebase', { source, target }),
+          danger: true,
+          onClick: () =>
+            setConfirm({
+              title: t('dnd.rebaseTitle'),
+              message: t('dnd.rebaseMessage', { source, target }),
+              confirmLabel: t('actions.rebase'),
+              danger: true,
+              onConfirm: () => rebaseBranch.mutate({ branch: source, onto: target })
             })
         }
       ]
@@ -321,6 +385,21 @@ export function Sidebar(): React.JSX.Element {
                 current={b.current}
                 onDoubleClick={b.current ? undefined : () => checkout.mutate(b.name)}
                 onContextMenu={(e) => localMenu(e, b.name, b.current)}
+                draggable
+                dropActive={dropTarget === b.name && dragBranch !== b.name}
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = 'move'
+                  e.dataTransfer.setData('text/cyrex-branch', b.name)
+                  setDragBranch(b.name)
+                }}
+                onDragOver={(e) => {
+                  if (dragBranch && dragBranch !== b.name) {
+                    e.preventDefault()
+                    if (dropTarget !== b.name) setDropTarget(b.name)
+                  }
+                }}
+                onDragLeave={() => setDropTarget((d) => (d === b.name ? null : d))}
+                onDrop={(e) => branchDrop(e, b.name)}
                 badge={
                   b.ahead || b.behind
                     ? `${b.ahead ? `↑${b.ahead}` : ''}${b.behind ? `↓${b.behind}` : ''}`
