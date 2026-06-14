@@ -40,4 +40,10 @@ mac:
     - dmg
   category: public.app-category.developer-tools
 
-publish: null
+# Publish built installers to the GitHub Release for the current version's tag.
+# Used by CI (`electron-builder --publish always` with GH_TOKEN); local `npm run
+# dist` does not publish unless a token is present.
+publish:
+  provider: github
+  owner: Noxisan
+  repo: Cyrex
