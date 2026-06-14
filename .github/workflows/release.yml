@@ -1,0 +1,50 @@
+name: Release
+
+# Builds Cyrex on each target OS and publishes the installers to the GitHub
+# Release for the tag. macOS dmg and Windows nsis/portable must be built on
+# their own runners — they cannot be produced from Linux (see CLAUDE notes).
+on:
+  push:
+    tags:
+      - 'v*'
+  # Allow building the current package.json version on demand (e.g. to (re)attach
+  # installers to an existing release).
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest # Linux: AppImage + deb
+          - os: windows-latest # Windows: NSIS installer + portable
+          - os: macos-latest # macOS: dmg
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The Git engine currently shells out to the system git (no native module),
+      # so no electron-rebuild is needed. Re-enable this once nodegit is added.
+      # - run: npm run rebuild
+
+      - name: Type-check and build renderer/main
+        run: npm run build
+
+      - name: Package and publish installers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No code-signing certificates in CI — produce unsigned artifacts.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx electron-builder --publish always
