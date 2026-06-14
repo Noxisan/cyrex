@@ -214,10 +214,15 @@
     "toggleTerminal": "Terminal umschalten",
     "toggleTheme": "Theme umschalten",
     "checkout": "{{name}} auschecken",
+    "checkoutRemote": "{{name}} auschecken (neuer lokaler Branch)",
+    "navHint": "navigieren",
+    "runHint": "ausführen",
+    "closeHint": "schließen",
     "group": {
       "navigation": "Navigation",
       "repository": "Repository",
       "branches": "Branches",
+      "commits": "Commits",
       "view": "Ansicht"
     }
   }

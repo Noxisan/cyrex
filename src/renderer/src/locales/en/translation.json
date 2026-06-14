@@ -214,10 +214,15 @@
     "toggleTerminal": "Toggle terminal",
     "toggleTheme": "Toggle theme",
     "checkout": "Check out {{name}}",
+    "checkoutRemote": "Check out {{name}} (new local branch)",
+    "navHint": "navigate",
+    "runHint": "run",
+    "closeHint": "close",
     "group": {
       "navigation": "Navigation",
       "repository": "Repository",
       "branches": "Branches",
+      "commits": "Commits",
       "view": "View"
     }
   }
