@@ -63,6 +63,8 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Embedded terminal (command runner) | Done |
 | Command palette (Cmd/Ctrl+K) | Done |
 | Drag-and-drop branch merge / rebase | Done |
+| Hosting integration: GitHub (browse / clone / create / link) | Done |
+| Hosting integration: GitLab, Bitbucket | Planned |
 
 ## Supported languages
 

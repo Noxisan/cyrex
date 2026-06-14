@@ -3,6 +3,7 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Archive,
+  CloudCog,
   Command,
   FolderOpen,
   RefreshCw,
@@ -61,6 +62,7 @@ export function TopBar(): React.JSX.Element {
   const openReflog = useRepoStore((s) => s.openReflog)
   const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
   const togglePalette = useRepoStore((s) => s.togglePalette)
+  const openAccounts = useRepoStore((s) => s.openAccounts)
   const stashSave = useStashSave(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
@@ -174,6 +176,7 @@ export function TopBar(): React.JSX.Element {
       </button>
       <LanguageSwitcher />
       <ThemeToggle />
+      <ToolButton label={t('hosting.accounts')} icon={CloudCog} onClick={openAccounts} />
       <ToolButton label={t('actions.settings')} icon={Settings} />
 
       <PromptDialog state={prompt} onClose={() => setPrompt(null)} />
