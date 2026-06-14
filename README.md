@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="readme_logo.png" alt="Cyrex — Visual Git Client" width="300" />
+  <img src="readme_logo.png" alt="Cyrex — Visual Git Client" width="100%" />
 </p>
 
 # Cyrex
