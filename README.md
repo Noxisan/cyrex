@@ -62,6 +62,7 @@ _Diff view, sidebar, and staging area screenshots to be added under `docs/screen
 | Undo / reflog surface | Done |
 | Embedded terminal (command runner) | Done |
 | Command palette (Cmd/Ctrl+K) | Done |
+| Drag-and-drop branch merge / rebase | Done |
 
 ## Supported languages
 
