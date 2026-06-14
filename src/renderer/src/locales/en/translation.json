@@ -24,6 +24,12 @@
     "rebaseTitle": "Rebase branch",
     "rebaseMessage": "Rebase {{source}} onto {{target}}? This rewrites {{source}}'s history by replaying its commits on top of {{target}} — recoverable via Undo (reflog)."
   },
+  "openRepo": {
+    "local": "On this computer",
+    "openFolder": "Open a folder…",
+    "recent": "Recent",
+    "remote": "Remote"
+  },
   "hosting": {
     "accounts": "Accounts",
     "noAccounts": "No accounts connected yet.",

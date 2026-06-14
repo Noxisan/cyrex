@@ -14,8 +14,7 @@ import { ReflogPanel } from './components/ReflogPanel'
 import { RebaseDialog } from './components/RebaseDialog'
 import { TerminalPanel } from './components/TerminalPanel'
 import { CommandPalette } from './components/CommandPalette'
-import { AccountsDialog } from './components/AccountsDialog'
-import { CloneDialog } from './components/CloneDialog'
+import { OpenRepoDialog } from './components/OpenRepoDialog'
 import { CreateRepoDialog } from './components/CreateRepoDialog'
 
 export function App(): React.JSX.Element {
@@ -54,8 +53,7 @@ export function App(): React.JSX.Element {
       <ReflogPanel />
       <RebaseDialog />
       <CommandPalette />
-      <AccountsDialog />
-      <CloneDialog />
+      <OpenRepoDialog />
       <CreateRepoDialog />
       <Toasts />
     </div>

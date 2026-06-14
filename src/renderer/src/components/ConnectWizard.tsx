@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Cloud, KeyRound, MonitorSmartphone } from 'lucide-react'
+import { ArrowLeft, KeyRound, MonitorSmartphone } from 'lucide-react'
 import type { HostingProviderId } from '@shared/types'
 import { useConnectToken, useProviders } from '../hooks/useHosting'
+import { ProviderIcon } from './BrandIcon'
 
 const PROVIDER_LABEL: Record<HostingProviderId, string> = {
   github: 'GitHub',
@@ -96,7 +97,7 @@ export function ConnectWizard({ onClose }: { onClose: () => void }): React.JSX.E
                   : 'border-border text-fg-muted hover:bg-surface-2'
               }`}
             >
-              <Cloud size={16} strokeWidth={1.75} />
+              <ProviderIcon id={p.id} size={16} />
               <span className="font-medium">{PROVIDER_LABEL[p.id]}</span>
             </button>
           ))}

@@ -1,18 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { Download, FolderOpen, GitGraph } from 'lucide-react'
+import { FolderOpen, GitGraph } from 'lucide-react'
 import { useRepoStore } from '../store/repoStore'
 import { useEngineInfo } from '../hooks/useRepo'
 
 export function WelcomeScreen(): React.JSX.Element {
   const { t } = useTranslation()
-  const addRepo = useRepoStore((s) => s.addRepo)
-  const openAccounts = useRepoStore((s) => s.openAccounts)
+  const openRepoModal = useRepoStore((s) => s.openRepoModal)
   const engine = useEngineInfo()
-
-  async function openRepo(): Promise<void> {
-    const res = await window.cyrex.openRepoDialog()
-    if (res.ok && res.data) addRepo(res.data)
-  }
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-bg p-8 text-center">
@@ -21,24 +15,14 @@ export function WelcomeScreen(): React.JSX.Element {
       </div>
       <h1 className="mb-1 text-lg font-semibold text-fg">{t('welcome.title')}</h1>
       <p className="mb-6 max-w-sm text-xs leading-relaxed text-fg-muted">{t('welcome.hint')}</p>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={openRepo}
-          className="flex items-center gap-2 rounded-[var(--radius-card)] bg-accent px-4 py-2 text-xs font-medium text-accent-fg transition-colors hover:bg-accent-hover"
-        >
-          <FolderOpen size={16} strokeWidth={1.75} />
-          {t('actions.openRepository')}
-        </button>
-        <button
-          type="button"
-          onClick={openAccounts}
-          className="flex items-center gap-2 rounded-[var(--radius-card)] border border-border px-4 py-2 text-xs font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-        >
-          <Download size={16} strokeWidth={1.75} />
-          {t('hosting.clone')}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={openRepoModal}
+        className="flex items-center gap-2 rounded-[var(--radius-card)] bg-accent px-4 py-2 text-xs font-medium text-accent-fg transition-colors hover:bg-accent-hover"
+      >
+        <FolderOpen size={16} strokeWidth={1.75} />
+        {t('actions.openRepository')}
+      </button>
       {engine.data && (
         <p className="mt-8 text-[11px] text-fg-subtle">
           {t('welcome.engine', { backend: engine.data.backend, version: engine.data.version })}

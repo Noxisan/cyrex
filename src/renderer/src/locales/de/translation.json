@@ -24,6 +24,12 @@
     "rebaseTitle": "Branch rebasen",
     "rebaseMessage": "{{source}} auf {{target}} rebasen? Dies schreibt die Historie von {{source}} um, indem die Commits auf {{target}} neu aufgespielt werden — über Rückgängig (Reflog) wiederherstellbar."
   },
+  "openRepo": {
+    "local": "Auf diesem Computer",
+    "openFolder": "Ordner öffnen…",
+    "recent": "Zuletzt verwendet",
+    "remote": "Remote"
+  },
   "hosting": {
     "accounts": "Konten",
     "noAccounts": "Noch keine Konten verbunden.",

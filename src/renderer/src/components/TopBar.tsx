@@ -3,7 +3,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   Archive,
-  CloudCog,
   Command,
   FolderOpen,
   RefreshCw,
@@ -58,11 +57,10 @@ function ToolButton({
 export function TopBar(): React.JSX.Element {
   const { t } = useTranslation()
   const activePath = useRepoStore((s) => s.activePath)
-  const addRepo = useRepoStore((s) => s.addRepo)
   const openReflog = useRepoStore((s) => s.openReflog)
   const toggleTerminal = useRepoStore((s) => s.toggleTerminal)
   const togglePalette = useRepoStore((s) => s.togglePalette)
-  const openAccounts = useRepoStore((s) => s.openAccounts)
+  const openRepoModal = useRepoStore((s) => s.openRepoModal)
   const stashSave = useStashSave(activePath ?? '')
   const fetch = useFetch(activePath ?? '')
   const pull = usePull(activePath ?? '')
@@ -70,11 +68,6 @@ export function TopBar(): React.JSX.Element {
   const [prompt, setPrompt] = useState<PromptState | null>(null)
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
-
-  async function openRepo(): Promise<void> {
-    const res = await window.cyrex.openRepoDialog()
-    if (res.ok && res.data) addRepo(res.data)
-  }
 
   function pushMenu(e: React.MouseEvent): void {
     e.preventDefault()
@@ -154,7 +147,7 @@ export function TopBar(): React.JSX.Element {
       {hasRepo && <SearchInput />}
       <button
         type="button"
-        onClick={openRepo}
+        onClick={openRepoModal}
         className="flex items-center gap-1.5 rounded-[var(--radius-card)] bg-accent px-3 py-1.5 text-xs font-medium text-accent-fg transition-colors hover:bg-accent-hover"
       >
         <FolderOpen size={16} strokeWidth={1.75} />
@@ -176,7 +169,6 @@ export function TopBar(): React.JSX.Element {
       </button>
       <LanguageSwitcher />
       <ThemeToggle />
-      <ToolButton label={t('hosting.accounts')} icon={CloudCog} onClick={openAccounts} />
       <ToolButton label={t('actions.settings')} icon={Settings} />
 
       <PromptDialog state={prompt} onClose={() => setPrompt(null)} />

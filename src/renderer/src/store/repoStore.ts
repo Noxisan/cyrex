@@ -36,9 +36,8 @@ interface RepoState {
   terminalOpen: boolean
   /** Whether the command palette (Cmd/Ctrl+K) overlay is open. */
   paletteOpen: boolean
-  /** Remote-hosting overlays (accounts hub, clone browser, create repo). */
-  accountsOpen: boolean
-  cloneOpen: boolean
+  /** The unified Open Repository modal (local repos left, remote accounts right). */
+  openRepoOpen: boolean
   createRepoOpen: boolean
   theme: Theme
 
@@ -57,10 +56,8 @@ interface RepoState {
   toggleTerminal: () => void
   togglePalette: () => void
   closePalette: () => void
-  openAccounts: () => void
-  closeAccounts: () => void
-  openClone: () => void
-  closeClone: () => void
+  openRepoModal: () => void
+  closeRepoModal: () => void
   openCreateRepo: () => void
   closeCreateRepo: () => void
   setTheme: (theme: Theme) => void
@@ -102,8 +99,7 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   rebaseBase: null,
   terminalOpen: false,
   paletteOpen: false,
-  accountsOpen: false,
-  cloneOpen: false,
+  openRepoOpen: false,
   createRepoOpen: false,
   theme: initialTheme(),
 
@@ -137,10 +133,8 @@ export const useRepoStore = create<RepoState>((set, get) => ({
   toggleTerminal: () => set((s) => ({ terminalOpen: !s.terminalOpen })),
   togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
   closePalette: () => set({ paletteOpen: false }),
-  openAccounts: () => set({ accountsOpen: true }),
-  closeAccounts: () => set({ accountsOpen: false }),
-  openClone: () => set({ cloneOpen: true }),
-  closeClone: () => set({ cloneOpen: false }),
+  openRepoModal: () => set({ openRepoOpen: true }),
+  closeRepoModal: () => set({ openRepoOpen: false }),
   openCreateRepo: () => set({ createRepoOpen: true }),
   closeCreateRepo: () => set({ createRepoOpen: false }),
 
